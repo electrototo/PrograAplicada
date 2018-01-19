@@ -9,7 +9,7 @@
 #include <stdio.h>
 
 int main() {
-    float a, b, c;
+    float a, b, c, ta, tb, tc;
 
     printf("Ingresa el valor de a: ");
     scanf("%f", &a);
@@ -20,11 +20,17 @@ int main() {
     printf("Ingresa el valor de c: ");
     scanf("%f", &c);
 
-    b = a;
-    c = b;
-    a = c;
-
     printf("\nValor final de a: %.2f\n", a);
+
+    ta = a;
+    tb = b;
+    tc = c;
+
+    b = ta;
+    c = tb;
+    a = tc;
+
+    printf("a: %.2f, b: %.2f, c: %.2f\n", a, b, c);
 
     return 0;
 }
