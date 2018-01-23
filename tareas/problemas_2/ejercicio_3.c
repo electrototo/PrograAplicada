@@ -7,26 +7,32 @@
 
 #include <stdio.h>
 
+void get_frequency(int *frequency_list);
 char to_lower(char letter);
 
 int main() {
     static int frequency[26];
-    char c;
 
     printf("Ingresa una frase: ");
-    while ((c = getchar()) != '\n' && c != EOF) {
-        c = to_lower(c);
-
-        if (c != 7)
-            frequency[c - 'a']++;
-    }
+    get_frequency(frequency);
 
     printf("\nFrecuencia de las letras que aparecen en la frase:\n");
     for (int i = 0; i < 26; i++)
         if (frequency[i] > 0)
-            printf("%c: %d\n", 'a' + i, frequency[i]);
+            printf("\t%c: %d\n", 'a' + i, frequency[i]);
 
     return 0;
+}
+
+void get_frequency(int *frequency_list) {
+    char c;
+
+    while ((c = getchar()) != '\n' && c != EOF) {
+        c = to_lower(c);
+
+        if (c != 7)
+            frequency_list[c - 'a']++;
+    }
 }
 
 char to_lower(char letter) {
