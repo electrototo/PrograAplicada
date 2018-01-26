@@ -18,6 +18,25 @@ typedef struct IMAGE {
     unsigned char **points;
 } IMAGE;
 
+IMAGE *create_canvas(int width, int height) {
+    IMAGE *new_image = (IMAGE *) malloc(sizeof(IMAGE));
+
+    new_image->points = (unsigned char **) malloc(sizeof(unsigned char **) * height);
+
+    // TODO: use calloc
+    memset(new_image->points, 0, sizeof(unsigned char **) * height);
+
+    for (int y = 0; y < height; y++) {
+        new_image->points[y] = (unsigned char *) malloc(sizeof(unsigned char *) * width);
+        memset(new_image->points[y], 0, sizeof(unsigned char ) * width);
+    }
+
+    new_image->width = width;
+    new_image->height = height;
+
+    return new_image;
+}
+
 IMAGE *load_image(char *path) {
     FILE *image_file;
     IMAGE *new_image = (IMAGE *) malloc(sizeof(IMAGE));
@@ -39,8 +58,6 @@ IMAGE *load_image(char *path) {
 
     new_image->points = (unsigned char **) malloc(sizeof(unsigned char **) * new_image->height);
 
-    printf("load image: %d * %d\n", new_image->width, new_image->height);
-
     for (int y = 0; y < new_image->height; y++)
         new_image->points[y] = (unsigned char *) malloc(sizeof(unsigned char *) * new_image->width);
 
@@ -50,19 +67,19 @@ IMAGE *load_image(char *path) {
         }
     }
 
-    printf("end load image\n");
-
     fclose(image_file);
 
     return new_image;
 }
 
-void close_image(IMAGE *image) {
-    for (int y = 0; y < image->height; y++)
-        free(image->points[y]);
+void close_image(IMAGE **image) {
+    for (int y = 0; y < (*image)->height; y++)
+        free((*image)->points[y]);
 
-    free(image->points);
-    free(image);
+    free((*image)->points);
+    free(*image);
+
+    *image = NULL;
 }
 
 FILE *write_image(IMAGE *image, char *path) {
@@ -124,13 +141,41 @@ void equalize_hist(IMAGE *image) {
     free(frequencies);
 }
 
+void scale_image_linear(IMAGE **image, int width, int height) {
+    IMAGE *new_image = create_canvas(width, height);
+
+    float x_ratio, y_ratio;
+    int x, y;
+
+    new_image->max_value = (*image)->max_value;
+    strcpy(new_image->format, (*image)->format);
+
+    x_ratio = ((*image)->width) / (double) width;
+    y_ratio = ((*image)->height) / (double) height;
+
+    for (int row = 0; row < height; row++) {
+        for (int column = 0; column < width; column++) {
+            x = column * x_ratio;
+            y = row * y_ratio;
+
+            new_image->points[row][column] = (*image)->points[y][x];
+        }
+    }
+
+    close_image(image);
+
+    *image = new_image;
+}
+
 int main(int argc, char **argv) {
     IMAGE *process;
 
     process = load_image(argv[1]);
+    scale_image_linear(&process, 640, 480);
+
     equalize_hist(process);
     write_image(process, argv[2]);
-    close_image(process);
+    close_image(&process);
 
     return 0;
 }
