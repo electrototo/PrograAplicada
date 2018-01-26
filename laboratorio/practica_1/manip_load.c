@@ -15,7 +15,7 @@ typedef struct IMAGE {
 
     char format[3];
 
-    unsigned char *begin;
+    unsigned char **points;
 } IMAGE;
 
 IMAGE *load_image(char *path) {
@@ -37,10 +37,20 @@ IMAGE *load_image(char *path) {
 
     fseek(image_file, 1, SEEK_CUR);
 
-    new_image->begin = (char *) malloc(new_image->width * new_image->height);
+    new_image->points = (unsigned char **) malloc(sizeof(unsigned char **) * new_image->height);
 
-    for (int i = 0; i < new_image->width * new_image->height; i++)
-        new_image->begin[i] = fgetc(image_file);
+    printf("load image: %d * %d\n", new_image->width, new_image->height);
+
+    for (int y = 0; y < new_image->height; y++)
+        new_image->points[y] = (unsigned char *) malloc(sizeof(unsigned char *) * new_image->width);
+
+    for (int y = 0; y < new_image->height; y++) {
+        for (int x = 0; x < new_image->width; x++) {
+            fread(&new_image->points[y][x], 1, 1, image_file);
+        }
+    }
+
+    printf("end load image\n");
 
     fclose(image_file);
 
@@ -48,7 +58,10 @@ IMAGE *load_image(char *path) {
 }
 
 void close_image(IMAGE *image) {
-    free(image->begin);
+    for (int y = 0; y < image->height; y++)
+        free(image->points[y]);
+
+    free(image->points);
     free(image);
 }
 
@@ -68,14 +81,20 @@ FILE *write_image(IMAGE *image, char *path) {
             image->max_value);
 
     fwrite(header, strlen(header), 1, image_file);
-    fwrite(image->begin, image->width * image->height, 1, image_file);
+
+    printf("write_image\n");
+
+    for (int y = 0; y < image->height; y++)
+        for (int x = 0; x < image->width; x++)
+            fputc(image->points[y][x], image_file);
 
     fclose(image_file);
 }
 
 void inverse_image(IMAGE *image) {
-    for (int i = 0; i < image->width * image->height; i++)
-        image->begin[i] = ~(image->begin[i]);
+    for (int y = 0; y < image->height; y++)
+        for (int x = 0; x < image->width; x++)
+            image->points[y][x] = ~(image->points[y][x]);
 }
 
 void equalize_hist(IMAGE *image) {
@@ -85,17 +104,21 @@ void equalize_hist(IMAGE *image) {
     int pixels = image->width * image->height;
     int pos = 0;
 
-    for (int i = 0; i < pixels; i++) {
-        pos = image->begin[i];
-        frequencies[pos]++;
+    for (int y = 0; y < image->height; y++) {
+        for (int x = 0; x < image->width; x++) {
+            pos = image->points[y][x];
+            frequencies[pos]++;
+        }
     }
 
     for (int i = 1; i < image->max_value + 1; i++)
         frequencies[i] += frequencies[i - 1];
 
-    for (int i = 0; i < pixels; i++) {
-        pos = image->begin[i];
-        image->begin[i] = image->max_value * ((float) frequencies[pos] / (float) pixels);
+    for(int y = 0; y < image->height; y++) {
+        for (int x = 0; x < image->width; x++) {
+            pos = image->points[y][x];
+            image->points[y][x] = image->max_value * ((float) frequencies[pos] / (float) pixels);
+        }
     }
 
     free(frequencies);
@@ -105,11 +128,8 @@ int main(int argc, char **argv) {
     IMAGE *process;
 
     process = load_image(argv[1]);
-
     equalize_hist(process);
-
-    write_image(process, "new_inverse.raw");
-
+    write_image(process, argv[2]);
     close_image(process);
 
     return 0;
