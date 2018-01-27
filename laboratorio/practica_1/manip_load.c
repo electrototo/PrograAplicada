@@ -141,7 +141,7 @@ void equalize_hist(IMAGE *image) {
     free(frequencies);
 }
 
-void scale_image_linear(IMAGE **image, int width, int height) {
+void scale_image_nearest(IMAGE **image, int width, int height) {
     IMAGE *new_image = create_canvas(width, height);
 
     float x_ratio, y_ratio;
@@ -167,13 +167,56 @@ void scale_image_linear(IMAGE **image, int width, int height) {
     *image = new_image;
 }
 
+void scale_image_linear(IMAGE **image, int width, int height) {
+    IMAGE *new_image = create_canvas(width, height);
+
+    float x_ratio, y_ratio, new_ratio_x, new_ratio_y;
+    float x_diff, y_diff;
+
+    int x, y;
+
+    unsigned char A, B, C, D;
+    unsigned char new_data_1, new_data_2, new_data_3;
+
+    new_image->max_value = (*image)->max_value;
+    strcpy(new_image->format, (*image)->format);
+
+    new_ratio_y = ((*image)->width - 1) / (double) width;
+    new_ratio_x = ((*image)->height - 1) / (double) height;
+
+    for (int row = 0; row < height; row++) {
+        for (int column = 0; column < width; column++) {
+            x = new_ratio_x * column;
+            y = new_ratio_y * row;
+
+            x_diff = (new_ratio_x * (double) column) - x;
+            y_diff = (new_ratio_y * (double) row) - y;
+
+            A = (*image)->points[y][x];
+            B = (*image)->points[y][x + 1];
+            C = (*image)->points[y + 1][x];
+            D = (*image)->points[y + 1][x + 1];
+
+            new_data_1 = A * (1 - x_diff) * (1 - y_diff) + B * (x_diff) * (1 - y_diff) +
+                         C * (y_diff) * (1 - x_diff) + D * (x_diff * y_diff);
+
+            new_image->points[row][column] = new_data_1;
+        }
+    }
+
+    close_image(image);
+
+    *image = new_image;
+}
+
 int main(int argc, char **argv) {
     IMAGE *process;
 
     process = load_image(argv[1]);
-    scale_image_linear(&process, 640, 480);
 
+    scale_image_linear(&process, process->width * 2, process->height * 2);
     equalize_hist(process);
+
     write_image(process, argv[2]);
     close_image(&process);
 
