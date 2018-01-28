@@ -91,8 +91,6 @@ FILE *write_image(IMAGE *image, char *path) {
 
     fwrite(header, strlen(header), 1, image_file);
 
-    printf("write_image\n");
-
     for (int y = 0; y < image->height; y++)
         for (int x = 0; x < image->width; x++)
             fputc(image->points[y][x], image_file);
