@@ -10,8 +10,10 @@
 unsigned char reverse(unsigned char letter) {
     unsigned char new = 0;
 
-    for (int i = 0; i < 7; i++, new <<= 1, letter >>= 1)
+    for (int i = 0; i < 8; i++, letter >>= 1) {
+        new <<= 1;
         new |= letter & 1;
+    }
 
     return new;
 }
@@ -83,4 +85,3 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-
