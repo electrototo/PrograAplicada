@@ -43,12 +43,12 @@ int main() {
                 break;
 
             case 2:
-                print_list(head);
+                print_list(&llist);
 
                 break;
 
             case 3:
-                free_list(&head);
+                free_list(&llist);
                 printf("lista borrada\n");
 
                 break;
@@ -58,7 +58,7 @@ int main() {
         }
     }
 
-    free_list(&head);
+    free_list(&llist);
 
     return 0;
 }
@@ -73,14 +73,15 @@ node_t *create_new_node(int data, node_t *next) {
     }
 
     new_node->next = next;
+    new_node->prev = NULL;
     new_node->data = data;
 
     return new_node;
 }
 
-node_t *insert_data(int data, node_t **head) {
+node_t *insert_data(int data, llist_t *llist) {
     node_t *new_node = create_new_node(data, NULL);
-    node_t *current = *head, *prev = NULL;
+    node_t *current = llist->head, *prev = NULL;
 
     while (current != NULL && current->data < data) {
         prev = current;
@@ -89,36 +90,42 @@ node_t *insert_data(int data, node_t **head) {
 
     new_node->next = current;
 
-    if (prev != NULL)
-        prev->next = new_node;
-    else
-        *head = new_node;
+    if (prev != NULL) {
+        if (current != NULL)
+            current->prev = new_node;
 
-    return *head;
+        prev->next = new_node;
+        new_node->prev = prev;
+    }
+    else
+        llist->head = new_node;
+
+    return llist->head;
 }
 
-void print_list(node_t *head) {
-    node_t *current = head;
+void print_list(llist_t *llist) {
+    node_t *current = llist->head;
 
     while (current != NULL) {
         printf("NODE %p\n", current);
         printf("\tdata: %d\n", current->data);
-        printf("\tnext: %p\n\n", current->next);
+        printf("\tnext: %p\n", current->next);
+        printf("\tprev: %p\n\n", current->prev);
 
         current = current->next;
     }
 }
 
-void free_list(node_t **head) {
+void free_list(llist_t *llist) {
     node_t *next;
 
-    while (*head != NULL) {
-        next = (*head)->next;
-        free(*head);
-        *head = next;
+    while (llist->head != NULL) {
+        next = llist->head->next;
+        free(llist->head);
+        llist->head = next;
     }
 
-    *head = NULL;
+    llist->head = NULL;
 }
 
 int menu() {
