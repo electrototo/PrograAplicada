@@ -79,5 +79,4 @@ void free_tree(node_t *root) {
         free_tree(root->right);
         free(root);
     }
-
 }
