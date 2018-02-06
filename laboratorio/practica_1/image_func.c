@@ -10,12 +10,13 @@
 
 #include "image_func.h"
 
+// genera un "canvas" blanco de dimesiones width * height
+// regresa una estructura tipo IMAGEN
 IMAGE *create_canvas(int width, int height) {
     IMAGE *new_image = (IMAGE *) malloc(sizeof(IMAGE));
 
     new_image->points = (unsigned char **) malloc(sizeof(unsigned char **) * height);
 
-    // TODO: use calloc
     memset(new_image->points, 0, sizeof(unsigned char **) * height);
 
     for (int y = 0; y < height; y++) {
@@ -29,6 +30,8 @@ IMAGE *create_canvas(int width, int height) {
     return new_image;
 }
 
+// crea una estructura de tipo IMAGEN con los datos necesarios para futuras
+// manioulaciones: tamano en x, tamano en y, y los pixeles de la imagen
 IMAGE *load_image(char *path) {
     FILE *image_file;
     IMAGE *new_image = (IMAGE *) malloc(sizeof(IMAGE));
@@ -64,6 +67,8 @@ IMAGE *load_image(char *path) {
     return new_image;
 }
 
+// libera toda la memoria previamente alocada para la estructura y
+// pixeles de la imagen
 void close_image(IMAGE **image) {
     for (int y = 0; y < (*image)->height; y++)
         free((*image)->points[y]);
@@ -74,6 +79,8 @@ void close_image(IMAGE **image) {
     *image = NULL;
 }
 
+// escribe en un archivo los pixeles de la imagen *image y guarda el archivo
+// con el nombre especificado en *path
 FILE *write_image(IMAGE *image, char *path) {
     FILE *image_file;
     char header[100];
@@ -98,19 +105,23 @@ FILE *write_image(IMAGE *image, char *path) {
     fclose(image_file);
 }
 
+// obten la inversa de la imagen con el complemento a 2
 void inverse_image(IMAGE *image) {
     for (int y = 0; y < image->height; y++)
         for (int x = 0; x < image->width; x++)
             image->points[y][x] = ~(image->points[y][x]);
 }
 
+// genera la ecualizacion del histograma
 void equalize_hist(IMAGE *image) {
+    // genera un arreglo de frecuencias de intensidad de pixeles
     unsigned long *frequencies = (unsigned long *) calloc(image->max_value + 1,
         sizeof(unsigned long));
 
     int pixels = image->width * image->height;
     int pos = 0;
 
+    // recorre todos los pixeles de la imagen para generar la tabla de frecuencias
     for (int y = 0; y < image->height; y++) {
         for (int x = 0; x < image->width; x++) {
             pos = image->points[y][x];
@@ -118,11 +129,15 @@ void equalize_hist(IMAGE *image) {
         }
     }
 
+    // genera la tabla de frecuencias acumuladas
     for (int i = 1; i < image->max_value + 1; i++)
         frequencies[i] += frequencies[i - 1];
 
+    // a todos los pixeles de la imagen, aplica la formula de la referencia no. 1
+    // del documento IEEE
     for(int y = 0; y < image->height; y++) {
         for (int x = 0; x < image->width; x++) {
+            // pos es la intensidad del pixel en la posicion y, x
             pos = image->points[y][x];
             image->points[y][x] = image->max_value * ((float) frequencies[pos] / (float) pixels);
         }
@@ -131,6 +146,7 @@ void equalize_hist(IMAGE *image) {
     free(frequencies);
 }
 
+// genera la imagen con las nuevas dimensiones
 void scale_image_nearest(IMAGE **image, int width, int height) {
     IMAGE *new_image = create_canvas(width, height);
 
@@ -140,11 +156,13 @@ void scale_image_nearest(IMAGE **image, int width, int height) {
     new_image->max_value = (*image)->max_value;
     strcpy(new_image->format, (*image)->format);
 
+    // calcula las razones de losnuevos tamanos
     x_ratio = ((*image)->width) / (double) width;
     y_ratio = ((*image)->height) / (double) height;
 
     for (int row = 0; row < height; row++) {
         for (int column = 0; column < width; column++) {
+            // x y y son la posicion en la imagen original
             x = column * x_ratio;
             y = row * y_ratio;
 
@@ -157,6 +175,7 @@ void scale_image_nearest(IMAGE **image, int width, int height) {
     *image = new_image;
 }
 
+// cambia de tamano la imagen usando interpolacion bilinear
 void scale_image_linear(IMAGE **image, int width, int height) {
     IMAGE *new_image = create_canvas(width, height);
 
