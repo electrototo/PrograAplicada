@@ -114,6 +114,7 @@ void splash_screen() {
     cont();
 }
 
+// imprime el menu principal que va a preguntar al usuario la accion a tomar
 int main_menu() {
     system("clear");
 
@@ -127,23 +128,26 @@ int main_menu() {
     printf("  [5] Guardar imagen\n");
     printf("  [6] Salir\n");
 
+    // se repite hasta que se ingrese una opcion valida
     do {
         printf("Opcion: ");
         scanf("%d", &choice);
         getchar();
-    } while (choice < 1 || choice > 8);
+    } while (choice < 1 || choice > 6);
 
     system("clear");
 
     return choice;
 }
 
+// obtiene el nombre del archivo que se desea editar
 void load_image_menu(char *filename) {
     printf("Ingresa el nombre de la imagen: ");
     scanf("%s", filename);
     getchar();
 }
 
+// obtiene las nuevas dimesiones de la imagen
 void resize_menu(int *width, int *height) {
     printf("Ingresa el nuevo tamano horizontal: ");
     scanf("%d", width);
@@ -153,11 +157,13 @@ void resize_menu(int *width, int *height) {
     getchar();
 }
 
+// funcion auxiliar que espera a que presionen enter
 void cont() {
     printf("\nPresiona enter para continuar...");
     getchar();
 }
 
+// imprime el error si es que la imagen no esta cargada en memoria
 void error() {
     printf("Necesitas cargar primero una imagen\n");
     cont();

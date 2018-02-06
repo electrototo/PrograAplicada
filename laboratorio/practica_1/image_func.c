@@ -15,10 +15,13 @@
 IMAGE *create_canvas(int width, int height) {
     IMAGE *new_image = (IMAGE *) malloc(sizeof(IMAGE));
 
+    // aloca espacio para las hileras de la imagen
     new_image->points = (unsigned char **) malloc(sizeof(unsigned char **) * height);
 
+    // limpia toda la basura del arreglo
     memset(new_image->points, 0, sizeof(unsigned char **) * height);
 
+    // aloca espacio para las columnas de cada hilera
     for (int y = 0; y < height; y++) {
         new_image->points[y] = (unsigned char *) malloc(sizeof(unsigned char *) * width);
         memset(new_image->points[y], 0, sizeof(unsigned char ) * width);
@@ -38,6 +41,7 @@ IMAGE *load_image(char *path) {
 
     image_file = fopen(path, "r");
 
+    // checa la existencia del archivo
     if (image_file == NULL) {
         printf("No existe el archivo %s\n", path);
 
@@ -46,16 +50,21 @@ IMAGE *load_image(char *path) {
 
     fread(new_image->format, 2, 1, image_file);
 
+    // obtiene los tamanos de la imagen y los guarda en la nueva estructura
     fscanf(image_file, "%d %d %d", &new_image->width, &new_image->height,
            &new_image->max_value);
 
     fseek(image_file, 1, SEEK_CUR);
 
+    // aloca espacio para las hileras de la imagen
     new_image->points = (unsigned char **) malloc(sizeof(unsigned char **) * new_image->height);
 
+    // aloca espacio para las columnas de cada hilera de la imagen
     for (int y = 0; y < new_image->height; y++)
         new_image->points[y] = (unsigned char *) malloc(sizeof(unsigned char *) * new_image->width);
 
+    // obtiene byte por byte los pixeles de la imagen
+    // cada pixel = 1 byte
     for (int y = 0; y < new_image->height; y++) {
         for (int x = 0; x < new_image->width; x++) {
             fread(&new_image->points[y][x], 1, 1, image_file);
@@ -70,10 +79,14 @@ IMAGE *load_image(char *path) {
 // libera toda la memoria previamente alocada para la estructura y
 // pixeles de la imagen
 void close_image(IMAGE **image) {
+    // recorre cada hilera de la estructura y libera las columnas
     for (int y = 0; y < (*image)->height; y++)
         free((*image)->points[y]);
 
+    // libera las hileras
     free((*image)->points);
+
+    // libera la estructura
     free(*image);
 
     *image = NULL;
@@ -93,11 +106,13 @@ FILE *write_image(IMAGE *image, char *path) {
         return NULL;
     }
 
+    // guarda el encabezado de la imagen
     sprintf(header, "%s %d %d %d ", image->format, image->width, image->height,
             image->max_value);
 
     fwrite(header, strlen(header), 1, image_file);
 
+    // guarda cada pixel de la imagen en un archivo
     for (int y = 0; y < image->height; y++)
         for (int x = 0; x < image->width; x++)
             fputc(image->points[y][x], image_file);
@@ -156,7 +171,7 @@ void scale_image_nearest(IMAGE **image, int width, int height) {
     new_image->max_value = (*image)->max_value;
     strcpy(new_image->format, (*image)->format);
 
-    // calcula las razones de losnuevos tamanos
+    // calcula las razones de los nuevos tamanos
     x_ratio = ((*image)->width) / (double) width;
     y_ratio = ((*image)->height) / (double) height;
 
