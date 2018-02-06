@@ -1,10 +1,11 @@
 /*
  *  autor: cristobal liendo i
- *  fecha: Fri 26 Jan 2018 11:11:37 PM CST
- *  descripcion:
+ *  fecha: Mon 05 Feb 2018 10:30:33 PM CST
+ *  descripcion: cifrar archivos en imagenes PGM
 */
 
 #include <stdio.h>
+#include <string.h>
 #include "image_func.h"
 
 unsigned char reverse(unsigned char letter) {
@@ -28,6 +29,13 @@ int main(int argc, char **argv) {
 
     unsigned long max_data, current_size;
     int index = 0;
+
+    if (strcmp(argv[1], "-h") == 0) {
+        printf("Usage:\n");
+        printf("\t%s input_image.pgm file_to_encode.*\n", argv[0]);
+
+        return 0;
+    }
 
     image = load_image(argv[1]);
     to_hide = fopen(argv[2], "rb");
@@ -60,28 +68,6 @@ int main(int argc, char **argv) {
     close_image(&image);
     fclose(to_hide);
 
-    image = load_image("encoded.raw");
-    printf("load image encoded.raw\n");
-
-    FILE *decode;
-    decode = fopen("decoded.raw", "wb");
-
-    max_data = 0;
-    current = 0;
-    for(int y = 0; y < image->height; y++) {
-        for (int x = 0; x < image->width; x++) {
-            if ((y * (image->width) + x) % 8 == 0 && !(y == 0 && x == 0)) {
-                fputc(current, decode);
-                current = 0x00;
-            }
-
-            current <<= 1;
-            current |= image->points[y][x] & 1;
-        }
-    }
-
-    fclose(decode);
-    close_image(&image);
-
     return 0;
 }
+
