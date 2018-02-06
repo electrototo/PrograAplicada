@@ -8,8 +8,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+// aqui se incluyen todas las definiciones de las funciones
 #include "image_func.h"
 
+// son todos los menus que se le van a presentar al usuario
 int main_menu();
 void load_image_menu(char *filename);
 void resize_menu(int *width, int *height);
@@ -25,7 +27,9 @@ int main(int argc, char **argv) {
 
     splash_screen();
 
+    // repite mientras que el usuario no haya decidido salirse
     while((choice = main_menu()) != 6) {
+        // el usuario decidio cargar en memoria la imagen
         if (choice == 1) {
             load_image_menu(filename);
             to_edit = load_image(filename);
@@ -35,7 +39,7 @@ int main(int argc, char **argv) {
         }
         else if (set){
             switch(choice) {
-                // inverso
+                // obten el inverso
                 case 2:
                     inverse_image(to_edit);
                     printf("Inverso exitosamente obtenido\n");
@@ -43,7 +47,7 @@ int main(int argc, char **argv) {
 
                     break;
 
-                // ecualizar
+                // ecualiza la imagen
                 case 3:
                     equalize_hist(to_edit);
                     printf("Imagen exitosamente ecualizada\n");
@@ -51,7 +55,7 @@ int main(int argc, char **argv) {
 
                     break;
 
-                // tamano
+                // cambia de tamano
                 case 4:
                     resize_menu(&width, &height);
                     scale_image_nearest(&to_edit, width, height);
@@ -60,6 +64,7 @@ int main(int argc, char **argv) {
 
                     break;
 
+                // guarda la imagen
                 case 5:
                     printf("Ingresa el nombre de como se deberia guardar: ");
                     scanf("%s", filename);
@@ -71,21 +76,26 @@ int main(int argc, char **argv) {
                     break;
             }
         }
+        // si el usuario decide modificar la imagen, sin previamente haberla abierto
+        // marca error
         else
             error();
     }
 
+    // guarda una copia de la imagen si el usuario no cambio los cambios
     if (set && !saved) {
         printf("Cambios no guardados. Guardando la imagen como copia.raw\n");
         write_image(to_edit, "copia.raw");
     }
 
+    // libera la memoria de la imagen
     if (set)
         close_image(&to_edit);
 
     return 0;
 }
 
+// seccion de menus
 void splash_screen() {
     system("clear");
     printf("Programa disenado y elaborado por Cristobal Liendo I.\n");
