@@ -9,16 +9,19 @@
 
 typedef struct node_t {
     int data;
-    struct node_t *left, *right;
+    struct node_t *left, *right, *parent;
 } node_t;
 
-node_t *create_node(int data, node_t *left, node_t *right);
+node_t *create_node(int data, node_t *left, node_t *right, node_t *parent);
 void insert_tree(int data, node_t **root);
 void print_tree(node_t *root);
 void free_tree(node_t *root);
 
-void find_erase(int data, node_t **root, node_t **parent);
-void insert_branch(node_t *branch, node_t **root);
+node_t *find_min(node_t *root);
+node_t *successor(node_t *root);
+void delete_node(node_t **root, node_t *to_delete);
+node_t *find_node(int data, node_t *root);
+void find_and_delete(int data, node_t **root);
 
 int menu();
 
@@ -39,7 +42,7 @@ int main() {
                 scanf("%d", &data);
                 getchar();
 
-                find_erase(data, &root, NULL);
+                find_and_delete(data, &root);
                 break;
 
             case 3:
@@ -55,38 +58,6 @@ int main() {
     return 0;
 }
 
-void find_erase(int data, node_t **root, node_t **parent) {
-    node_t *left_branch, *right_branch;
-
-    if (*root == NULL)
-        return;
-    else if (data == (*root)->data) {
-        left_branch = (*root)->left;
-        right_branch = (*root)->right;
-
-        *root = NULL;
-
-        insert_branch(right_branch, parent);
-        insert_branch(left_branch, parent);
-
-    }
-    else if (data < (*root)->data)
-        find_erase(data, &(*root)->left, root);
-    else
-        find_erase(data, &(*root)->right, root);
-}
-
-void insert_branch(node_t *branch, node_t **root) {
-    if (*root == NULL || branch == NULL)
-        *root = branch;
-
-    else if (branch->data < (*root)->data)
-        insert_branch(branch, &(*root)->left);
-
-    else
-        insert_branch(branch, &(*root)->right);
-}
-
 int menu() {
     int data;
 
@@ -100,7 +71,7 @@ int menu() {
     return data;
 }
 
-node_t *create_node(int data, node_t *left, node_t *right) {
+node_t *create_node(int data, node_t *left, node_t *right, node_t *parent) {
     node_t *new_node = (node_t *) malloc(sizeof(node_t));
 
     if (new_node == NULL) {
@@ -111,30 +82,120 @@ node_t *create_node(int data, node_t *left, node_t *right) {
 
     new_node->left = left;
     new_node->right = right;
+    new_node->parent = parent;
+
     new_node->data = data;
 
     return new_node;
 }
 
 void insert_tree(int data, node_t **root) {
-    if (*root == NULL)
-        *root = create_node(data, NULL, NULL);
+    node_t *parent = NULL;
+    node_t *current = *root;
 
-    else if (data < (*root)->data)
-        insert_tree(data, &(*root)->left);
+    node_t *new_node;
+
+    while (current != NULL) {
+        parent = current;
+
+        if (data < current->data)
+            current = current->left;
+        else
+            current = current->right;
+    }
+
+    new_node = create_node(data, NULL, NULL, parent);
+
+    if (parent == NULL)
+        *root = new_node;
+
+    else if (data < parent->data)
+        parent->left = new_node;
 
     else
-        insert_tree(data, &(*root)->right);
+        parent->right = new_node;
+}
+
+node_t *find_min(node_t *root) {
+    while (root->left != NULL)
+        root = root->left;
+
+    return root;
+}
+
+node_t *successor(node_t *root) {
+    node_t *parent, *current;
+
+    if (root->right != NULL)
+        return find_min(root->right);
+
+    parent = root->parent;
+    current = root;
+
+    while (parent != NULL && current == parent->right) {
+        current = parent;
+        parent = parent->parent;
+    }
+
+    return parent;
+}
+
+void delete_node(node_t **root, node_t *z) {
+    node_t *y, *x;
+
+    if (z->left == NULL || z->right == NULL)
+        y = z;
+    else
+        y = successor(z);
+
+    if (y->left != NULL)
+        x = y->left;
+    else
+        x = y->right;
+
+    if (x != NULL)
+        x->parent = y->parent;
+
+    if (y->parent == NULL)
+        *root = x;
+    else if (y == y->parent->left)
+        y->parent->left = x;
+    else
+        y->parent->right = x;
+
+    if (y != z) {
+        z->data = y->data;
+        free(y);
+    }
+}
+
+node_t *find_node(int data, node_t *root) {
+    if (root == NULL)
+        return NULL;
+
+    else if (data == root->data)
+        return root;
+
+    else if (data < root->data)
+        find_node(data, root->left);
+
+    else
+        find_node(data, root->right);
+}
+
+void find_and_delete(int data, node_t **root) {
+    node_t *pos = find_node(data, *root);
+    delete_node(root, pos);
 }
 
 void print_tree(node_t *root) {
     if (root == NULL)
         return;
 
-
     printf("\nCurrent:     %p\n", root);
     printf("Left:        %p\n", root->left);
     printf("Right:       %p\n", root->right);
+    printf("Parent:      %p\n", root->parent);
     printf("Data:        %d\n", root->data);
 
     print_tree(root->left);
