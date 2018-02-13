@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct l_node_t {
     struct l_node_t *next, *prev;
@@ -165,19 +166,34 @@ t_node_t *create_tree(l_node_t **head_stack, unsigned long total) {
     return new_node;
 }
 
-void print_tree(t_node_t *root) {
+void create_codes(t_node_t *root, char *code, int level, char **codes) {
     if (root == NULL)
         return;
 
-    print_tree(root->left);
+    if (code == NULL)
+        code = (char *) calloc(64, sizeof(char));
+
+    // leaf node
+    if (root->right == NULL && root->left == NULL)
+        codes[root->letter] = strdup(code);
+
+    level++;
+    strcat(code, "0");
+    create_codes(root->left, code, level, codes);
+
+    code[level - 1] = 0;
+    strcat(code, "1");
+    create_codes(root->right, code, level, codes);
+}
+
+void print_node(t_node_t *root) {
     printf("Actual:        %p\n", root);
     printf("Right:         %p\n", root->right);
     printf("Left:          %p\n", root->left);
     printf("Parent:        %p\n", root->parent);
-    printf("Letter:        0x%02x\n", root->letter);
+    printf("Letter:        0x%02x (%c)\n", root->letter, root->letter);
     printf("Frequency:     %lu\n", root->frequency);
-    printf("Code:          %d\n\n", root->code);
-    print_tree(root->right);
+    printf("Code:          %d\n", root->code);
 }
 
 // file operations
@@ -207,23 +223,53 @@ unsigned long *get_frequencies(FILE *fp, unsigned long *total) {
 
 int main(int argc, char **argv) {
     // frequency test
-    FILE *file;
+    FILE *file, *compressed;
     unsigned long *freq, total;
 
     l_node_t *head = NULL;
     t_node_t *root;
 
+    char *codes[256], *start;
+    unsigned char to_write = 0, index = 0;
+
     file = fopen(argv[1], "rt");
+    compressed = fopen(argv[2], "wb");
+
     freq = get_frequencies(file, &total);
 
     create_stack(freq, &head);
     root = create_tree(&head, total);
 
+    create_codes(root, NULL, 0, codes);
 
-    print_tree(root);
-    print_stack(head);
+    for (int i = 0; i < 255; i++)
+        if (freq[i])
+            printf("code for letter 0x%02x (%c): %s\n", i, i, codes[i]);
+
+    while (!feof(file)) {
+        start = codes[fgetc(file)];
+
+        while (*start) {
+            if (index == 8) {
+                fputc(to_write, compressed);
+
+                index = 0;
+                to_write = 0;
+            }
+
+            to_write |= (*start == '1') << (7 - index);
+            index++;
+            start++;
+        }
+    }
+
+    fputc(to_write, compressed);
+
+    printf("\n");
 
     fclose(file);
+    fclose(compressed);
+
     free_stack(head);
     free(freq);
 
