@@ -222,7 +222,6 @@ unsigned long *get_frequencies(FILE *fp, unsigned long *total) {
 }
 
 int main(int argc, char **argv) {
-    // frequency test
     FILE *file, *compressed;
     unsigned long *freq, total;
 
@@ -263,11 +262,39 @@ int main(int argc, char **argv) {
         }
     }
 
-    fputc(to_write, compressed);
-
-    printf("\n");
+    if (index != 0)
+        fputc(to_write, compressed);
 
     fclose(file);
+    fclose(compressed);
+
+    // Decomprimir texto
+    compressed = fopen(argv[2], "rb");
+
+    char read = 0;
+    t_node_t *current = root;
+    unsigned long read_bytes = 0;
+
+    while (!feof(compressed)) {
+        to_write = fgetc(compressed);
+
+        for (int i = 0; i < 8 && read_bytes < total - 1; i++) {
+            read = to_write & (1 << (7 - i));
+
+            if (read)
+                current = current->right;
+            else
+                current = current->left;
+
+            if (current->right == NULL && current->left == NULL) {
+                printf("%c", current->letter);
+                read_bytes++;
+
+                current = root;
+            }
+        }
+    }
+
     fclose(compressed);
 
     free_stack(head);
