@@ -80,19 +80,6 @@ t_node_t *pop(l_node_t **head) {
     return payload;
 }
 
-void print_stack(l_node_t *head) {
-    l_node_t *current = head;
-
-    while (current != NULL) {
-        printf("Current:     %p\n", current);
-        printf("Next:        %p\n", current->next);
-        printf("Prev:        %p\n", current->prev);
-        printf("Letter:      0x%02x\n\n", current->payload->letter);
-
-        current = current->next;
-    }
-}
-
 void free_stack(l_node_t *head) {
     l_node_t *current = head;
     l_node_t *tmp;
@@ -186,16 +173,6 @@ void create_codes(t_node_t *root, char *code, int level, char **codes) {
     create_codes(root->right, code, level, codes);
 }
 
-void print_node(t_node_t *root) {
-    printf("Actual:        %p\n", root);
-    printf("Right:         %p\n", root->right);
-    printf("Left:          %p\n", root->left);
-    printf("Parent:        %p\n", root->parent);
-    printf("Letter:        0x%02x (%c)\n", root->letter, root->letter);
-    printf("Frequency:     %lu\n", root->frequency);
-    printf("Code:          %d\n", root->code);
-}
-
 // file operations
 unsigned long *get_frequencies(FILE *fp, unsigned long *total) {
     // from ascii...
@@ -221,21 +198,33 @@ unsigned long *get_frequencies(FILE *fp, unsigned long *total) {
     return frequencies;
 }
 
-int main(int argc, char **argv) {
+void compress_file(char *input, char *output) {
     FILE *file, *compressed;
-    unsigned long *freq, total;
+    unsigned long *freq, total, new_size = 0;
 
     l_node_t *head = NULL;
-    t_node_t *root;
+    t_node_t *root = NULL;
 
     char *codes[256], *start;
     unsigned char to_write = 0, index = 0;
 
-    file = fopen(argv[1], "rt");
-    compressed = fopen(argv[2], "wb");
+    file = fopen(input, "rt");
+
+    if (file == NULL) {
+        printf("\tEl archivo %s no existe\n", input);
+
+        return;
+    }
+
+    compressed = fopen(output, "wb");
+
+    if (compressed == NULL) {
+        printf("\tHubo un error al abrir %s\n", output);
+
+        return;
+    }
 
     freq = get_frequencies(file, &total);
-
     create_stack(freq, &head);
     root = create_tree(&head, total);
 
@@ -243,7 +232,7 @@ int main(int argc, char **argv) {
 
     for (int i = 0; i < 255; i++)
         if (freq[i])
-            printf("code for letter 0x%02x (%c): %s\n", i, i, codes[i]);
+            printf("Codigo para la letra 0x%02x (%c): %s\n", i, i, codes[i]);
 
     while (!feof(file)) {
         start = codes[fgetc(file)];
@@ -254,6 +243,7 @@ int main(int argc, char **argv) {
 
                 index = 0;
                 to_write = 0;
+                new_size++;
             }
 
             to_write |= (*start == '1') << (7 - index);
@@ -262,13 +252,29 @@ int main(int argc, char **argv) {
         }
     }
 
-    if (index != 0)
+    if (index != 0) {
         fputc(to_write, compressed);
+        new_size++;
+    }
+
+    printf("\n[+] Peso total del archivo original:      %lu bytes\n", total);
+    printf("[+] Peso total del archivo comprimido:    %lu bytes\n", new_size);
+    printf("[+] Porcentaje de reduccion:              %.2f%%\n", ((float) new_size / total) * 100);
 
     fclose(file);
     fclose(compressed);
 
+    free_stack(head);
+    free(freq);
+}
+
+int main(int argc, char **argv) {
+    FILE *compressed;
+
+    compress_file(argv[1], argv[2]);
+
     // Decomprimir texto
+    /*
     compressed = fopen(argv[2], "rb");
 
     char read = 0;
@@ -296,9 +302,7 @@ int main(int argc, char **argv) {
     }
 
     fclose(compressed);
-
-    free_stack(head);
-    free(freq);
+    */
 
     return 0;
 }
