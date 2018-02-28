@@ -6,25 +6,23 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
-void quicksort(int *a, int left, int right);
-int partition(int *a, int left, int right);
-void swap(int *a, int *b);
+void quicksort(long int *a, int left, int right);
+int partition(long int *a, int left, int right);
+void swap(long int *a, long int *b);
 
 int main(int argc, char **argv) {
-    int total = atoi(argv[1]);
-    int randint;
+    long int total = atol(argv[1]);
 
-    int *numbers_1 = calloc(total, sizeof(int));
+    long int *numbers_1 = calloc(total, sizeof(long int));
 
-    for (int i = 0; i < total; i++) {
-        randint = random() % total;
-        numbers_1[i] = randint;
-    }
+    for (uint64_t i = 0; i < total; i++)
+        numbers_1[i] = random() % total;
 
     printf("Primeros 50 numeros:\n");
     for (int i = 0; i < 50; i++)
-        printf("%d, ", numbers_1[i]);
+        printf("%lu, ", numbers_1[i]);
 
     printf("\n\nOrdenando con quicksort sort...\n");
 
@@ -32,14 +30,14 @@ int main(int argc, char **argv) {
 
     printf("\nPrimeros 50 numeros ordenados:\n");
     for (int i = 0; i < 50; i++)
-        printf("%d, ", numbers_1[i]);
+        printf("%lu, ", numbers_1[i]);
 
     free(numbers_1);
 
     return 0;
 }
 
-void quicksort(int *a, int left, int right) {
+void quicksort(long int *a, int left, int right) {
     int pi;
 
     if (left < right) {
@@ -50,7 +48,7 @@ void quicksort(int *a, int left, int right) {
     }
 }
 
-int partition(int *a, int left, int right) {
+int partition(long int *a, int left, int right) {
     int pi = a[right];
     int i = left - 1;
 
@@ -66,7 +64,7 @@ int partition(int *a, int left, int right) {
     return i + 1;
 }
 
-void swap(int *a, int *b) {
+void swap(long int *a, long int *b) {
     int tmp = *a;
     *a = *b;
     *b = tmp;
