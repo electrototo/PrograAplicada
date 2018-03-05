@@ -9,27 +9,30 @@
 
 #define ASIZE(x) (sizeof(x) / sizeof(int))
 
-void merge(int *arr, int p, int q, int l);
-void merge_sort(int *arr, int p, int l);
+void merge(long int *arr, unsigned long p, unsigned long q, unsigned long l);
+void merge_sort(long int *arr, unsigned long p, unsigned long l);
 
-int main() {
-    int to_sort[] = {1, -2, -8, 10, 9, 7, -2, -1};
+int main(int argc, char **argv) {
+    long int total = atol(argv[1]);
+    long int *to_sort = calloc(total, sizeof(long int));
 
-    printf("Original:\n");
-    for (int i = 0; i < ASIZE(to_sort); i++)
-        printf("Data: %d\n", to_sort[i]);
+    for (long i = 0; i < total; i++)
+        to_sort[i] = random() % total;
 
-    printf("\n\n\n");
+    printf("Primeros 50 numeros:\n");
+    for (int i = 0; i < 50; i++)
+        printf("%lu, ", to_sort[i]);
 
-    merge_sort(to_sort, 0, ASIZE(to_sort) - 1);
+    merge_sort(to_sort, 0, total - 1);
 
-    for (int i = 0; i < ASIZE(to_sort); i++)
-        printf("Data: %d\n", to_sort[i]);
+    printf("\nPrimeros 50 numeros ordenados:\n");
+    for (int i = 0; i < 50; i++)
+        printf("%lu, ", to_sort[i]);
 
     return 0;
 }
 
-void merge_sort(int *arr, int p, int l) {
+void merge_sort(long int *arr, unsigned long p, unsigned long l) {
     int m;
 
     if (p < l) {
@@ -46,7 +49,7 @@ void merge_sort(int *arr, int p, int l) {
     }
 }
 
-void merge(int *arr, int p, int q, int l) {
+void merge(long int *arr, unsigned long p, unsigned long q, unsigned long l) {
     int i, j, k;
     int s1 = (q - p) + 1;
     int s2 = (l - q);
