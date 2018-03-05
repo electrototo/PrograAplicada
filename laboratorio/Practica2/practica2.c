@@ -67,11 +67,8 @@ t_node_t *pop(l_node_t **head) {
     l_node_t *current;
     t_node_t *payload;
 
-    if (*head == NULL) {
-        printf("underflow\n");
-
+    if (*head == NULL)
         return NULL;
-    }
 
     current = *head;
     payload = current->payload;
@@ -301,7 +298,7 @@ void print_frequencies(float *frequencies) {
     for (int i = 0; i < 254; i++) {
         if (frequencies[i] > 0) {
             set = 1;
-            printf("Simbolo: %c, frequencia: %.2f\n", i, frequencies[i]);
+            printf("Simbolo: %c, frequencia: %2.2f%%\n", i, frequencies[i]);
         }
     }
 
@@ -386,7 +383,7 @@ int read_symbols(float *frequencies) {
     return length;
 }
 
-void gen_print_codes(float *freq, char **codes) {
+void gen_print_codes(float *freq, char **codes, int print) {
     t_node_t *root;
     l_node_t *head = NULL;
 
@@ -409,6 +406,47 @@ void gen_print_codes(float *freq, char **codes) {
     else
         printf("Las frecuencias no suman 100%%\n");
 
+    if (print == 1)
+        cont();
+
+    return;
+}
+
+void codify(float *freq, char **codes) {
+    // generar nuevos codigos
+    char buffer[1024];
+    int len, error = 0;
+
+    printf("Usando los siguientes codigos:\n");
+    gen_print_codes(freq, codes, 0);
+
+    printf("Ingresa el mensaje a codificar:\n");
+    fgets(buffer, 1023, stdin);
+
+    len = strlen(buffer) - 1;
+    buffer[len] = 0;
+
+    // sanity check
+    for (int i = 0; i < len; i++) {
+        if (freq[buffer[i]] == 0) {
+            printf("El caracter %c no se encuentra guardado\n", buffer[i]);
+            error = 1;
+        }
+    }
+
+    fseek(stdin, 0, SEEK_END);
+
+    if (error)
+        printf("Para generar los codigos, favor de corregir los errores\n");
+
+    else {
+        printf("Mensaje codificado:\n");
+        for (int i = 0; i < len; i++)
+            printf("%s", codes[buffer[i]]);
+
+        printf("\n");
+    }
+
     cont();
 
     return;
@@ -421,7 +459,7 @@ int main(int argc, char **argv) {
     unsigned char length = 0;
 
     float frequencies[255];
-    char *codes[255];
+    char *codes[255], buffer[1024];
 
     l_node_t *stack_head = NULL;
     t_node_t *tree_root = NULL;
@@ -469,12 +507,14 @@ int main(int argc, char **argv) {
 
             case 6:
                 // generar codigos
-                gen_print_codes(frequencies, codes);
+                gen_print_codes(frequencies, codes, 1);
 
                 break;
 
             case 7:
                 // codificar mensaje
+                codify(frequencies, codes);
+
                 break;
 
             case 8:
