@@ -8,6 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define ADD_SYMBOL 1
+#define CHANGE_SYMBOL 0
+
 typedef struct l_node_t {
     struct l_node_t *next, *prev;
     struct t_node_t *payload;
@@ -18,7 +21,7 @@ typedef struct t_node_t {
 
     char letter;
     char code;
-    unsigned long frequency;
+    float frequency;
 } t_node_t;
 
 // stack operations
@@ -80,6 +83,39 @@ t_node_t *pop(l_node_t **head) {
     return payload;
 }
 
+l_node_t *find_list(char symbol, l_node_t *head) {
+    l_node_t *actual = head;
+
+    while (actual != NULL && actual->payload->letter != symbol)
+        actual = actual->next;
+
+    return actual;
+}
+
+void modify_freq(char symbol, float new_frequency, l_node_t **head) {
+    l_node_t *actual = find_list(symbol, *head);
+
+    if (actual != NULL)
+        actual->payload->frequency = new_frequency;
+}
+
+void delete_list(char symbol, l_node_t **head) {
+    l_node_t *actual = find_list(symbol, *head);
+
+    if (actual != NULL) {
+        if (actual->next != NULL)
+            actual->next->prev = actual->prev;
+
+        if (actual->prev != NULL)
+            actual->prev->next = actual->next;
+
+        if (actual->next == NULL && actual->prev == NULL)
+            *head = NULL;
+
+        free(actual);
+    }
+}
+
 void free_stack(l_node_t *head) {
     l_node_t *current = head;
     l_node_t *tmp;
@@ -93,7 +129,7 @@ void free_stack(l_node_t *head) {
 }
 
 // tree operations
-t_node_t *create_tree_node(char letter, char code, unsigned long frequency,
+t_node_t *create_tree_node(char letter, char code, float frequency,
         t_node_t *left, t_node_t *right, t_node_t *parent) {
 
     t_node_t *new_node = (t_node_t *) malloc(sizeof(t_node_t));
@@ -114,7 +150,7 @@ t_node_t *create_tree_node(char letter, char code, unsigned long frequency,
     return new_node;
 }
 
-void create_stack(unsigned long *freq, l_node_t **head) {
+void create_stack(float *freq, l_node_t **head) {
     t_node_t *tree_node;
 
     for (int i = 0; i < 255; i++) {
@@ -130,13 +166,7 @@ t_node_t *create_tree(l_node_t **head_stack, unsigned long total) {
     t_node_t *new_node = NULL;
     t_node_t *node_1, *node_2;
 
-    while (sum < total) {
-        node_1 = pop(head_stack);
-        node_2 = pop(head_stack);
-
-        if (node_1 == NULL || node_2 == NULL)
-            break;
-
+    while ((node_1 = pop(head_stack)) != NULL && (node_2 = pop(head_stack)) != NULL) {
         node_1->code = 0;
         node_2->code = 1;
 
@@ -173,10 +203,11 @@ void create_codes(t_node_t *root, char *code, int level, char **codes) {
     create_codes(root->right, code, level, codes);
 }
 
+// TODO: la frecuencia total no importa, asignarle una posicion de 0 a 255
 // file operations
-unsigned long *get_frequencies(FILE *fp, unsigned long *total) {
+float *get_frequencies(FILE *fp, unsigned long *total) {
     // from ascii...
-    unsigned long *frequencies = (unsigned long *) calloc(256, sizeof(unsigned long));
+    float *frequencies = (float *) calloc(255, sizeof(float));
     unsigned long in_total = 0;
 
     unsigned char data;
@@ -200,7 +231,9 @@ unsigned long *get_frequencies(FILE *fp, unsigned long *total) {
 
 void compress_file(char *input, char *output) {
     FILE *file, *compressed;
-    unsigned long *freq, total, new_size = 0;
+    unsigned long total, new_size = 0;
+
+    float *freq;
 
     l_node_t *head = NULL;
     t_node_t *root = NULL;
@@ -227,6 +260,10 @@ void compress_file(char *input, char *output) {
     freq = get_frequencies(file, &total);
     create_stack(freq, &head);
     root = create_tree(&head, total);
+
+    for (int i = 0; i < 255; i++)
+        if (freq[i] != 0)
+            printf("letra: %c, frecuencia: %.2f\n", i, freq[i]);
 
     create_codes(root, NULL, 0, codes);
 
@@ -268,10 +305,290 @@ void compress_file(char *input, char *output) {
     free(freq);
 }
 
+void cont() {
+    printf("\nPresiona enter para continuar...");
+    getchar();
+}
+
+void splash() {
+    system("clear");
+    printf("Huffman Coding\n");
+    printf("Disenado e implementado por Cristobal Liendo\n");
+    cont();
+    system("clear");
+    printf("Este es un sistema disenado para poder comprimir archivos de texto de acuerdo con el metodo\n");
+    printf("de Huffman. Es conocido como un algoritmo \"envidioso\" (greedy en ingles) por la manera en\n");
+    printf("la que opera, el cual es siempre escoger el camino mas eficiente.\n\n");
+    printf("El usuario debera ingresar las probabilidades para cada simbolo para poder comprimir de manera\n");
+    printf("adecuada el texto, aunque tambien se le ofrece la posibilidad de obtenerlas automaticamente\n\n");
+    cont();
+}
+
+int menu() {
+    int choice;
+
+    system("clear");
+    printf("Menu\n");
+    printf("[1] Introducir simbolo\n");
+    printf("[2] Listar simbolos\n");
+    printf("[3] Borrar simbolo\n");
+    printf("[4] Guardar simbolos en archivo\n");
+    printf("[5] Leer simbolos en archivo\n");
+    printf("[6] Generar codigos\n");
+    printf("[7] Codificar mensaje\n");
+    printf("[8] Decodificar mensaje\n");
+    printf("[9] Salir\n");
+
+    do {
+        printf("Opcion: ");
+        scanf("%d", &choice);
+        getchar();
+    } while (choice < 1 || choice > 9);
+
+    system("clear");
+
+    return choice;
+}
+
+int insert_symbol(float *frequencies) {
+    int error = 0;
+    char symbol, choice = 0;
+    float frequency;
+
+    printf("Ingresa el simbolo: ");
+    scanf("%c", &symbol);
+    getchar();
+
+    t_node_t *tree_node;
+
+    if (frequencies[symbol] != 0) {
+        printf("El simbolo %c ya tiene una frecuencia asociada. Cambiar la frecuencia [s,n]? ", symbol);
+        scanf("%c", &choice);
+        getchar();
+
+        if (choice != 'y' || choice != 'n') {
+            printf("Opcion no reconocida\n");
+
+            return -1;
+        }
+
+        if (choice == 'n')
+            return -1;
+    }
+
+    do {
+        if (error) {
+            printf("\tLa frecuencia debe ser un numero entre el 0 y 100\n");
+            error = 0;
+        }
+        printf("Ingresa la frecunecia: ");
+        scanf("%f", &frequency);
+        getchar();
+
+        error = 1;
+    } while (frequency > 100 || frequency <= 0);
+
+    frequencies[symbol] = frequency;
+
+    cont();
+
+    if (choice == 's')
+        return CHANGE_SYMBOL;
+    else
+        return ADD_SYMBOL;
+}
+
+void print_frequencies(float *frequencies) {
+    int set = 0;
+    for (int i = 0; i < 254; i++) {
+        if (frequencies[i] > 0) {
+            set = 1;
+            printf("Simbolo: %c, frequencia: %.2f\n", i, frequencies[i]);
+        }
+    }
+
+    if (!set)
+        printf("\tNo hay frecuencias registradas\n");
+
+    cont();
+}
+
+void delete_symbol(float *frequencies) {
+    char letter;
+
+    printf("Ingresa el simbolo a borrar: ");
+    scanf("%c", &letter);
+    getchar();
+
+    if (frequencies[letter] > 0) {
+        frequencies[letter] = 0;
+        printf("Simbolo exitosamente borrado\n");
+    }
+
+    else
+        printf("El simbolo ingresado no estaba registrado\n");
+
+    cont();
+}
+
+FILE *open_file(char *mode) {
+    FILE *fp;
+    char filename[100];
+
+    printf("Ingresa el nombre del archivo: ");
+    scanf("%s", filename);
+    getchar();
+
+    fp = fopen(filename, mode);
+
+    if (fp == NULL) {
+        printf("Hubo un error al abrir el archivo\n");
+
+        return NULL;
+    }
+
+    return fp;
+}
+
+void dump_symbols(float *frequencies, unsigned char length) {
+    FILE *dump = open_file("wt");
+
+    fprintf(dump, "%c\n", length);
+
+    for (unsigned char i = 0; i < 255; i++) {
+        if (frequencies[i] > 0)
+            fprintf(dump, "%c,%.2f\n", i, frequencies[i]);
+    }
+
+    printf("Simbolos exitosamente guardados\n");
+    cont();
+
+    fclose(dump);
+}
+
+int read_symbols(float *frequencies) {
+    FILE *dump = open_file("rb");
+
+    unsigned char length;
+    unsigned char symbol;
+    float frequency;
+
+    fscanf(dump, "%c\n", &length);
+
+    for (unsigned char i = 0; i < length; i++) {
+        fscanf(dump, "%c,%f\n", &symbol, &frequency);
+        frequencies[symbol] = frequency;
+    }
+
+    fclose(dump);
+
+    printf("Simbolos leidos: %d\n", length);
+    cont();
+
+    return length;
+}
+
+void gen_print_codes(float *freq, char **codes) {
+    t_node_t *root;
+    l_node_t *head = NULL;
+
+    float total = 0;
+
+    for (int i = 0; i < 255; i++)
+        total += freq[i];
+
+    if (total == 100) {
+        create_stack(freq, &head);
+        root = create_tree(&head, 100);
+        create_codes(root, NULL, 0, codes);
+
+        printf("Codigos:\n");
+
+        for (int i = 0; i < 255; i++)
+            if (freq[i] != 0)
+                printf("Simbolo %c: %s\n", i, codes[i]);
+    }
+    else
+        printf("Las frecuencias no suman 100%%\n");
+
+    cont();
+
+    return;
+}
+
 int main(int argc, char **argv) {
     FILE *compressed;
+    int choice, status;
 
-    compress_file(argv[1], argv[2]);
+    unsigned char length = 0;
+
+    float frequencies[255];
+    char *codes[255];
+
+    l_node_t *stack_head = NULL;
+    t_node_t *tree_root = NULL;
+
+    for (int i = 0; i < 255; i++)
+        frequencies[i] = 0;
+
+    splash();
+
+    while ((choice = menu()) != 9) {
+        switch (choice) {
+            case 1:
+                // introducir simbolo
+                status = insert_symbol(frequencies);
+
+                if (status == ADD_SYMBOL)
+                    length++;
+
+                break;
+
+            case 2:
+                // listar simbolos
+                print_frequencies(frequencies);
+
+                break;
+
+            case 3:
+                // borrar simbolo
+                delete_symbol(frequencies);
+                length--;
+
+                break;
+
+            case 4:
+                // guardar simbolos en archivo
+                dump_symbols(frequencies, length);
+
+                break;
+
+            case 5:
+                // leer simbolos de archivo
+                read_symbols(frequencies);
+
+                break;
+
+            case 6:
+                // generar codigos
+                gen_print_codes(frequencies, codes);
+
+                break;
+
+            case 7:
+                // codificar mensaje
+                break;
+
+            case 8:
+                // decodificar mensaje
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    // compress_file(argv[1], argv[2]);
 
     // Decomprimir texto
     /*
