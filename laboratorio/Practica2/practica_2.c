@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+// las descripciones de las funciones se encuentran en practica_2.h
 #include "practica_2.h"
 
 int main(int argc, char **argv) {
@@ -173,7 +175,7 @@ int insert_symbol(float *frequencies) {
         }
         printf("Ingresa la frecunecia: ");
         scanf("%f", &frequency);
-        getchar();
+        clear_buff();
 
         error = 1;
     } while (frequency > 100 || frequency <= 0);
@@ -210,6 +212,7 @@ void delete_symbol(float *frequencies) {
     scanf("%c", &letter);
     getchar();
 
+    // una frecuencia de 0 significa que no hay simbolo
     if (frequencies[letter] > 0) {
         frequencies[letter] = 0;
         printf("Simbolo exitosamente borrado\n");
@@ -245,6 +248,8 @@ void dump_symbols(float *frequencies, unsigned char length) {
 
     fprintf(dump, "%c\n", length);
 
+    // recorre la tabla de frecuencias y guarda el simbolo y su frecuencia
+    // dentro del archivo
     for (unsigned char i = 0; i < 255; i++) {
         if (frequencies[i] > 0)
             fprintf(dump, "%c,%.2f\n", i, frequencies[i]);
@@ -268,6 +273,8 @@ int read_symbols(float *frequencies) {
     for (int i = 0; i < 255; i++)
         frequencies[i] = 0;
 
+    // la desventaja de guardar la informacion como texto es que no se pueden guardar
+    // caracteres especiales como \n en el archivo. 
     for (unsigned char i = 0; i < length; i++) {
         fscanf(dump, "%c,%f\n", &symbol, &frequency);
         frequencies[symbol] = frequency;
@@ -290,7 +297,9 @@ t_node_t *gen_print_codes(float *freq, char **codes, int print) {
     for (int i = 0; i < 255; i++)
         total += freq[i];
 
+    // verifica que las frecuencias sumen 100
     if (total == 100) {
+        // genera el stack, arbol y codigos de huffman
         create_stack(freq, &head);
         root = create_tree(&head, 100);
         create_codes(root, NULL, 0, codes);
@@ -324,7 +333,7 @@ void codify(float *freq, char **codes) {
     len = strlen(buffer) - 1;
     buffer[len] = 0;
 
-    // sanity check
+    // verifica que todos los carcteres del mensaje tengan asociado una frecuencia
     for (int i = 0; i < len; i++) {
         if (freq[buffer[i]] == 0) {
             printf("El caracter %c no se encuentra guardado\n", buffer[i]);
@@ -332,7 +341,7 @@ void codify(float *freq, char **codes) {
         }
     }
 
-    fseek(stdin, 0, SEEK_END);
+    clear_buff();
 
     if (error)
         printf("Para generar los codigos, favor de corregir los errores\n");
@@ -368,22 +377,28 @@ void decodify(float *freq, char **codes) {
     len = strlen(buffer) - 1;
     buffer[len] = 0;
 
+    // para cada 1 o 0 en el mensaje introducido por el usuario
     printf("\nMensaje decodificado:\n");
     for (int i = 0; i <= len; i++) {
         actual = buffer[i];
 
+        // si el nodo actual no es nulo
         if (actual_node != NULL) {
             if (actual_node->left == NULL && actual_node->right == NULL) {
+                // imprime el simbolo actual
                 printf ("%c", actual_node->letter);
                 actual_node = root;
 
                 code_index = 0;
             }
 
+            // recorre a la derecha el arbol
             if (actual == '1') {
                 actual_node = actual_node->right;
                 code[code_index++] = '1';
             }
+
+            // recorre a la izquierda el arbol
             else {
                 actual_node = actual_node->left;
                 code[code_index++] = '0';
@@ -402,7 +417,10 @@ void decodify(float *freq, char **codes) {
     cont();
 }
 
-// stack operations
+/**
+ * Seccion de operaciones con stack
+**/
+
 l_node_t *create_llist_node(t_node_t *payload, l_node_t *next, l_node_t *prev) {
     l_node_t *new_node = (l_node_t *) malloc(sizeof(l_node_t));
 
@@ -420,10 +438,10 @@ l_node_t *create_llist_node(t_node_t *payload, l_node_t *next, l_node_t *prev) {
 }
 
 void push(t_node_t *data, l_node_t **head) {
-    // mayor a menor
     l_node_t *new_node = create_llist_node(data, NULL, NULL);
     l_node_t *current = *head, *prev = NULL;
 
+    // inserta el nuevo elemento de mayor a menor en el stack
     while (current != NULL && current->payload->frequency < new_node->payload->frequency) {
         prev = current;
         current = current->next;
@@ -445,9 +463,11 @@ t_node_t *pop(l_node_t **head) {
     l_node_t *current;
     t_node_t *payload;
 
+    // checa que haya objetos
     if (*head == NULL)
         return NULL;
 
+    // obtiene el ultimo elemento del stack
     current = *head;
     payload = current->payload;
 
@@ -462,6 +482,7 @@ void free_stack(l_node_t *head) {
     l_node_t *current = head;
     l_node_t *tmp;
 
+    // libera de memoria un stack
     while (current != NULL) {
         tmp = current->next;
         free(current->payload);
@@ -470,10 +491,28 @@ void free_stack(l_node_t *head) {
     }
 }
 
-// tree operations
+void create_stack(float *freq, l_node_t **head) {
+    t_node_t *tree_node;
+
+    // recorre la lista de frecuencias
+    for (int i = 0; i < 255; i++) {
+        // si hay una frecuencia asociada al caracter i
+        if (freq[i] > 0) {
+            // crea un nuevo nodo de arbol y empujalo al stack
+            tree_node = create_tree_node(i, 0, freq[i], NULL, NULL, NULL);
+            push(tree_node, head);
+        }
+    }
+}
+
+/**
+ * Seccion de operaciones con arboles
+**/
+
 t_node_t *create_tree_node(char letter, char code, float frequency,
         t_node_t *left, t_node_t *right, t_node_t *parent) {
 
+    // crea un nuevo nodo para el arbol
     t_node_t *new_node = (t_node_t *) malloc(sizeof(t_node_t));
 
     if (new_node == NULL) {
@@ -492,33 +531,25 @@ t_node_t *create_tree_node(char letter, char code, float frequency,
     return new_node;
 }
 
-void create_stack(float *freq, l_node_t **head) {
-    t_node_t *tree_node;
-
-    for (int i = 0; i < 255; i++) {
-        if (freq[i] > 0) {
-            tree_node = create_tree_node(i, 0, freq[i], NULL, NULL, NULL);
-            push(tree_node, head);
-        }
-    }
-}
-
 t_node_t *create_tree(l_node_t **head_stack, unsigned long total) {
     unsigned long sum = 0, accum = 0;
     t_node_t *new_node = NULL;
     t_node_t *node_1, *node_2;
 
+    // mientras que los elementos obtenidos no sean NULL
     while ((node_1 = pop(head_stack)) != NULL && (node_2 = pop(head_stack)) != NULL) {
         node_1->code = 0;
         node_2->code = 1;
 
         sum = node_1->frequency + node_2->frequency;
 
+        // crea un nuevo nodo con la suma de los dos anteriores
         new_node = create_tree_node(';', 0, sum, node_1, node_2, NULL);
 
         node_1->parent = new_node;
         node_2->parent = new_node;
 
+        // empuja el nuevo nodo al stack
         push(new_node, head_stack);
     }
 
@@ -529,17 +560,20 @@ void create_codes(t_node_t *root, char *code, int level, char **codes) {
     if (root == NULL)
         return;
 
+    // aloca el espacio de memoria para el codigo
     if (code == NULL)
         code = (char *) calloc(64, sizeof(char));
 
-    // leaf node
+    // es una hoja del arbol, guarda el codigo
     if (root->right == NULL && root->left == NULL)
         codes[root->letter] = strdup(code);
 
+    // concatena un 0 al codigo
     level++;
     strcat(code, "0");
     create_codes(root->left, code, level, codes);
 
+    // borra "level - 1" caracteres y concatena un 1 al codigo
     code[level - 1] = 0;
     strcat(code, "1");
     create_codes(root->right, code, level, codes);
