@@ -78,7 +78,7 @@ unsigned int dump_to_array(FILE *fp, char **names) {
 
     if (total >= MAX_NAMES) {
         printf("Mas de %d palabras encontradas...\n", MAX_NAMES);
-        printf("Ordenando los primeros %d nombres\n", MAX_NAMES);
+        printf("Buscando en los primeros %d nombres\n", MAX_NAMES);
     }
 
     return total;
