@@ -7,197 +7,85 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "practica_2.h"
 
-#define ADD_SYMBOL 1
-#define CHANGE_SYMBOL 0
+int main(int argc, char **argv) {
+    FILE *compressed;
+    int choice, status;
 
-typedef struct l_node_t {
-    struct l_node_t *next, *prev;
-    struct t_node_t *payload;
-} l_node_t;
+    unsigned char length = 0;
 
-typedef struct t_node_t {
-    struct t_node_t *parent, *left, *right;
+    float frequencies[255];
+    char *codes[255], buffer[1024];
 
-    char letter;
-    char code;
-    float frequency;
-} t_node_t;
+    l_node_t *stack_head = NULL;
+    t_node_t *tree_root = NULL;
 
-// stack operations
-l_node_t *create_llist_node(t_node_t *payload, l_node_t *next, l_node_t *prev) {
-    l_node_t *new_node = (l_node_t *) malloc(sizeof(l_node_t));
+    for (int i = 0; i < 255; i++)
+        frequencies[i] = 0;
 
-    if (new_node == NULL) {
-        printf("malloc error\n");
-        exit(0);
-    }
+    splash();
 
-    new_node->next = next;
-    new_node->prev = prev;
+    while ((choice = menu()) != 9) {
+        switch (choice) {
+            case 1:
+                // introducir simbolo
+                status = insert_symbol(frequencies);
 
-    new_node->payload = payload;
+                if (status == ADD_SYMBOL)
+                    length++;
 
-    return new_node;
-}
+                break;
 
-void push(t_node_t *data, l_node_t **head) {
-    // mayor a menor
-    l_node_t *new_node = create_llist_node(data, NULL, NULL);
-    l_node_t *current = *head, *prev = NULL;
+            case 2:
+                // listar simbolos
+                print_frequencies(frequencies);
 
-    while (current != NULL && current->payload->frequency < new_node->payload->frequency) {
-        prev = current;
-        current = current->next;
-    }
+                break;
 
-    if (prev == NULL)
-        *head = new_node;
-    else
-        prev->next = new_node;
+            case 3:
+                // borrar simbolo
+                delete_symbol(frequencies);
+                length--;
 
-    if (current != NULL)
-        current->prev = new_node;
+                break;
 
-    new_node->prev = prev;
-    new_node->next = current;
-}
+            case 4:
+                // guardar simbolos en archivo
+                dump_symbols(frequencies, length);
 
-t_node_t *pop(l_node_t **head) {
-    l_node_t *current;
-    t_node_t *payload;
+                break;
 
-    if (*head == NULL)
-        return NULL;
+            case 5:
+                // leer simbolos de archivo
+                read_symbols(frequencies);
 
-    current = *head;
-    payload = current->payload;
+                break;
 
-    *head = (*head)->next;
+            case 6:
+                // generar codigos
+                gen_print_codes(frequencies, codes, 1);
 
-    free(current);
+                break;
 
-    return payload;
-}
+            case 7:
+                // codificar mensaje
+                codify(frequencies, codes);
 
-l_node_t *find_list(char symbol, l_node_t *head) {
-    l_node_t *actual = head;
+                break;
 
-    while (actual != NULL && actual->payload->letter != symbol)
-        actual = actual->next;
+            case 8:
+                // decodificar mensaje
+                decodify(frequencies, codes);
 
-    return actual;
-}
+                break;
 
-void modify_freq(char symbol, float new_frequency, l_node_t **head) {
-    l_node_t *actual = find_list(symbol, *head);
-
-    if (actual != NULL)
-        actual->payload->frequency = new_frequency;
-}
-
-void delete_list(char symbol, l_node_t **head) {
-    l_node_t *actual = find_list(symbol, *head);
-
-    if (actual != NULL) {
-        if (actual->next != NULL)
-            actual->next->prev = actual->prev;
-
-        if (actual->prev != NULL)
-            actual->prev->next = actual->next;
-
-        if (actual->next == NULL && actual->prev == NULL)
-            *head = NULL;
-
-        free(actual);
-    }
-}
-
-void free_stack(l_node_t *head) {
-    l_node_t *current = head;
-    l_node_t *tmp;
-
-    while (current != NULL) {
-        tmp = current->next;
-        free(current->payload);
-        free(current);
-        current = tmp;
-    }
-}
-
-// tree operations
-t_node_t *create_tree_node(char letter, char code, float frequency,
-        t_node_t *left, t_node_t *right, t_node_t *parent) {
-
-    t_node_t *new_node = (t_node_t *) malloc(sizeof(t_node_t));
-
-    if (new_node == NULL) {
-        printf("malloc error\n");
-        exit(0);
-    }
-
-    new_node->letter = letter;
-    new_node->code = code;
-    new_node->frequency = frequency;
-
-    new_node->left = left;
-    new_node->right = right;
-    new_node->parent = parent;
-
-    return new_node;
-}
-
-void create_stack(float *freq, l_node_t **head) {
-    t_node_t *tree_node;
-
-    for (int i = 0; i < 255; i++) {
-        if (freq[i] > 0) {
-            tree_node = create_tree_node(i, 0, freq[i], NULL, NULL, NULL);
-            push(tree_node, head);
+            default:
+                break;
         }
     }
-}
 
-t_node_t *create_tree(l_node_t **head_stack, unsigned long total) {
-    unsigned long sum = 0, accum = 0;
-    t_node_t *new_node = NULL;
-    t_node_t *node_1, *node_2;
-
-    while ((node_1 = pop(head_stack)) != NULL && (node_2 = pop(head_stack)) != NULL) {
-        node_1->code = 0;
-        node_2->code = 1;
-
-        sum = node_1->frequency + node_2->frequency;
-
-        new_node = create_tree_node(';', 0, sum, node_1, node_2, NULL);
-
-        node_1->parent = new_node;
-        node_2->parent = new_node;
-
-        push(new_node, head_stack);
-    }
-
-    return new_node;
-}
-
-void create_codes(t_node_t *root, char *code, int level, char **codes) {
-    if (root == NULL)
-        return;
-
-    if (code == NULL)
-        code = (char *) calloc(64, sizeof(char));
-
-    // leaf node
-    if (root->right == NULL && root->left == NULL)
-        codes[root->letter] = strdup(code);
-
-    level++;
-    strcat(code, "0");
-    create_codes(root->left, code, level, codes);
-
-    code[level - 1] = 0;
-    strcat(code, "1");
-    create_codes(root->right, code, level, codes);
+    return 0;
 }
 
 void clear_buff() {
@@ -271,11 +159,11 @@ int insert_symbol(float *frequencies) {
             printf("Opcion no reconocida\n");
             cont();
 
-            return -1;
+            return EXIT;
         }
 
         if (choice == 'n')
-            return -1;
+            return EXIT;
     }
 
     do {
@@ -514,81 +402,145 @@ void decodify(float *freq, char **codes) {
     cont();
 }
 
-int main(int argc, char **argv) {
-    FILE *compressed;
-    int choice, status;
+// stack operations
+l_node_t *create_llist_node(t_node_t *payload, l_node_t *next, l_node_t *prev) {
+    l_node_t *new_node = (l_node_t *) malloc(sizeof(l_node_t));
 
-    unsigned char length = 0;
-
-    float frequencies[255];
-    char *codes[255], buffer[1024];
-
-    l_node_t *stack_head = NULL;
-    t_node_t *tree_root = NULL;
-
-    for (int i = 0; i < 255; i++)
-        frequencies[i] = 0;
-
-    splash();
-
-    while ((choice = menu()) != 9) {
-        switch (choice) {
-            case 1:
-                // introducir simbolo
-                status = insert_symbol(frequencies);
-
-                if (status == ADD_SYMBOL)
-                    length++;
-
-                break;
-
-            case 2:
-                // listar simbolos
-                print_frequencies(frequencies);
-
-                break;
-
-            case 3:
-                // borrar simbolo
-                delete_symbol(frequencies);
-                length--;
-
-                break;
-
-            case 4:
-                // guardar simbolos en archivo
-                dump_symbols(frequencies, length);
-
-                break;
-
-            case 5:
-                // leer simbolos de archivo
-                read_symbols(frequencies);
-
-                break;
-
-            case 6:
-                // generar codigos
-                gen_print_codes(frequencies, codes, 1);
-
-                break;
-
-            case 7:
-                // codificar mensaje
-                codify(frequencies, codes);
-
-                break;
-
-            case 8:
-                // decodificar mensaje
-                decodify(frequencies, codes);
-
-                break;
-
-            default:
-                break;
-        }
+    if (new_node == NULL) {
+        printf("malloc error\n");
+        exit(0);
     }
 
-    return 0;
+    new_node->next = next;
+    new_node->prev = prev;
+
+    new_node->payload = payload;
+
+    return new_node;
+}
+
+void push(t_node_t *data, l_node_t **head) {
+    // mayor a menor
+    l_node_t *new_node = create_llist_node(data, NULL, NULL);
+    l_node_t *current = *head, *prev = NULL;
+
+    while (current != NULL && current->payload->frequency < new_node->payload->frequency) {
+        prev = current;
+        current = current->next;
+    }
+
+    if (prev == NULL)
+        *head = new_node;
+    else
+        prev->next = new_node;
+
+    if (current != NULL)
+        current->prev = new_node;
+
+    new_node->prev = prev;
+    new_node->next = current;
+}
+
+t_node_t *pop(l_node_t **head) {
+    l_node_t *current;
+    t_node_t *payload;
+
+    if (*head == NULL)
+        return NULL;
+
+    current = *head;
+    payload = current->payload;
+
+    *head = (*head)->next;
+
+    free(current);
+
+    return payload;
+}
+
+void free_stack(l_node_t *head) {
+    l_node_t *current = head;
+    l_node_t *tmp;
+
+    while (current != NULL) {
+        tmp = current->next;
+        free(current->payload);
+        free(current);
+        current = tmp;
+    }
+}
+
+// tree operations
+t_node_t *create_tree_node(char letter, char code, float frequency,
+        t_node_t *left, t_node_t *right, t_node_t *parent) {
+
+    t_node_t *new_node = (t_node_t *) malloc(sizeof(t_node_t));
+
+    if (new_node == NULL) {
+        printf("malloc error\n");
+        exit(0);
+    }
+
+    new_node->letter = letter;
+    new_node->code = code;
+    new_node->frequency = frequency;
+
+    new_node->left = left;
+    new_node->right = right;
+    new_node->parent = parent;
+
+    return new_node;
+}
+
+void create_stack(float *freq, l_node_t **head) {
+    t_node_t *tree_node;
+
+    for (int i = 0; i < 255; i++) {
+        if (freq[i] > 0) {
+            tree_node = create_tree_node(i, 0, freq[i], NULL, NULL, NULL);
+            push(tree_node, head);
+        }
+    }
+}
+
+t_node_t *create_tree(l_node_t **head_stack, unsigned long total) {
+    unsigned long sum = 0, accum = 0;
+    t_node_t *new_node = NULL;
+    t_node_t *node_1, *node_2;
+
+    while ((node_1 = pop(head_stack)) != NULL && (node_2 = pop(head_stack)) != NULL) {
+        node_1->code = 0;
+        node_2->code = 1;
+
+        sum = node_1->frequency + node_2->frequency;
+
+        new_node = create_tree_node(';', 0, sum, node_1, node_2, NULL);
+
+        node_1->parent = new_node;
+        node_2->parent = new_node;
+
+        push(new_node, head_stack);
+    }
+
+    return new_node;
+}
+
+void create_codes(t_node_t *root, char *code, int level, char **codes) {
+    if (root == NULL)
+        return;
+
+    if (code == NULL)
+        code = (char *) calloc(64, sizeof(char));
+
+    // leaf node
+    if (root->right == NULL && root->left == NULL)
+        codes[root->letter] = strdup(code);
+
+    level++;
+    strcat(code, "0");
+    create_codes(root->left, code, level, codes);
+
+    code[level - 1] = 0;
+    strcat(code, "1");
+    create_codes(root->right, code, level, codes);
 }
