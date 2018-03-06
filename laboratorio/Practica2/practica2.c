@@ -200,6 +200,12 @@ void create_codes(t_node_t *root, char *code, int level, char **codes) {
     create_codes(root->right, code, level, codes);
 }
 
+void clear_buff() {
+    char c;
+
+    while ((c = getchar()) != '\n' && c != EOF);
+}
+
 void cont() {
     printf("\nPresiona enter para continuar...");
     getchar();
@@ -251,18 +257,19 @@ int insert_symbol(float *frequencies) {
     float frequency;
 
     printf("Ingresa el simbolo: ");
-    scanf("%c", &symbol);
-    getchar();
+    symbol = getchar();
+    clear_buff();
 
     t_node_t *tree_node;
 
     if (frequencies[symbol] != 0) {
         printf("El simbolo %c ya tiene una frecuencia asociada. Cambiar la frecuencia [s,n]? ", symbol);
         scanf("%c", &choice);
-        getchar();
+        clear_buff();
 
-        if (choice != 'y' || choice != 'n') {
+        if (choice != 's' && choice != 'n') {
             printf("Opcion no reconocida\n");
+            cont();
 
             return -1;
         }
@@ -370,6 +377,9 @@ int read_symbols(float *frequencies) {
 
     fscanf(dump, "%c\n", &length);
 
+    for (int i = 0; i < 255; i++)
+        frequencies[i] = 0;
+
     for (unsigned char i = 0; i < length; i++) {
         fscanf(dump, "%c,%f\n", &symbol, &frequency);
         frequencies[symbol] = frequency;
@@ -383,7 +393,7 @@ int read_symbols(float *frequencies) {
     return length;
 }
 
-void gen_print_codes(float *freq, char **codes, int print) {
+t_node_t *gen_print_codes(float *freq, char **codes, int print) {
     t_node_t *root;
     l_node_t *head = NULL;
 
@@ -409,7 +419,7 @@ void gen_print_codes(float *freq, char **codes, int print) {
     if (print == 1)
         cont();
 
-    return;
+    return root;
 }
 
 void codify(float *freq, char **codes) {
@@ -420,7 +430,7 @@ void codify(float *freq, char **codes) {
     printf("Usando los siguientes codigos:\n");
     gen_print_codes(freq, codes, 0);
 
-    printf("Ingresa el mensaje a codificar:\n");
+    printf("Ingresa el mensaje a codificar:\n\n");
     fgets(buffer, 1023, stdin);
 
     len = strlen(buffer) - 1;
@@ -450,6 +460,58 @@ void codify(float *freq, char **codes) {
     cont();
 
     return;
+}
+
+void decodify(float *freq, char **codes) {
+    // generar nuevos codigos
+    char buffer[2048], actual, code[16];
+    int len, code_index = 0;
+
+    t_node_t *root, *actual_node;
+
+    printf("Usando los siguientes codigos para decodificar:\n");
+    root = gen_print_codes(freq, codes, 0);
+
+    actual_node = root;
+
+    printf("Ingresa los simbolos a decodificar:\n\n");
+    fgets(buffer, 2047, stdin);
+
+    len = strlen(buffer) - 1;
+    buffer[len] = 0;
+
+    printf("\nMensaje decodificado:\n");
+    for (int i = 0; i <= len; i++) {
+        actual = buffer[i];
+
+        if (actual_node != NULL) {
+            if (actual_node->left == NULL && actual_node->right == NULL) {
+                printf ("%c", actual_node->letter);
+                actual_node = root;
+
+                code_index = 0;
+            }
+
+            if (actual == '1') {
+                actual_node = actual_node->right;
+                code[code_index++] = '1';
+            }
+            else {
+                actual_node = actual_node->left;
+                code[code_index++] = '0';
+            }
+        }
+        else {
+            code[code_index] = 0;
+
+            printf("Error, el codigo %s no se encuentra registrado\n", code);
+            code_index = 0;
+        }
+    }
+
+    printf("\n");
+
+    cont();
 }
 
 int main(int argc, char **argv) {
@@ -519,6 +581,8 @@ int main(int argc, char **argv) {
 
             case 8:
                 // decodificar mensaje
+                decodify(frequencies, codes);
+
                 break;
 
             default:
