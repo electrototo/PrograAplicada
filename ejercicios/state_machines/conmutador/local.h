@@ -60,6 +60,16 @@ struct state_tab_s
 };
 typedef struct state_tab_s STATE_TAB;
 
+typedef struct node_t {
+    struct node_t *next, *prev;
+    char *number;
+} node_t;
+
+typedef struct llist_t {
+    node_t *head, *tail;
+} llist_t;
+
+llist_t llist;
 
 /********************* GLOBALES ***********************
  * En esta seccion se pueden declarar todas           *
