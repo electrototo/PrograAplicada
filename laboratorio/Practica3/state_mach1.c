@@ -31,7 +31,7 @@ int c_nip(void);
 int mensaje_init(void);
 int mensaje_I(void);
 int mensaje_R(void);
-int Imp_saldo(void);
+int imp_saldo(void);
 int mensaje_mov(void);
 int mensaje_C(void);
 int mensaje_prin(void);
@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
 }
 
 // linked lists
-node_t *create_new_node(user_t data, node_t *next, node_t *prev) {
+node_t *create_new_node(user_t *data, node_t *next, node_t *prev) {
     node_t *new_node = (node_t *) malloc(sizeof(node_t));
 
     if (new_node == NULL) {
@@ -124,7 +124,7 @@ node_t *create_new_node(user_t data, node_t *next, node_t *prev) {
     return new_node;
 }
 
-node_t *insert_data(user_t data, llist_t *llist) {
+node_t *insert_data(user_t *data, llist_t *llist) {
     node_t *new_node = create_new_node(data, llist->head, NULL);
 
     if (llist->tail == NULL)
@@ -142,11 +142,11 @@ user_t *find_user(char *account, llist_t *llist) {
     node_t *cursor;
 
     cursor = llist->head;
-    while (cursor != NULL && strcmp(account, cursor->payload.account) != 0)
+    while (cursor != NULL && strcmp(account, cursor->payload->account) != 0)
         cursor = cursor->next;
 
     if (cursor != NULL)
-        return &cursor->payload;
+        return cursor->payload;
 
     else
         return NULL;
@@ -154,7 +154,7 @@ user_t *find_user(char *account, llist_t *llist) {
 
 void load_users() {
     long fl;
-    user_t actual;
+    user_t *actual;
 
     char name[100], account[20], nip[100];
 
@@ -165,14 +165,16 @@ void load_users() {
     fseek(users_db, 0, SEEK_SET);
 
     while (ftell(users_db) < fl) {
+        actual = (user_t *) malloc(sizeof(user_t));
+
         fscanf(users_db, "%s\n", name);
         fscanf(users_db, "%s\n", account);
         fscanf(users_db, "%s\n", nip);
-        fscanf(users_db, "%ld\n", &actual.balance);
+        fscanf(users_db, "%ld\n", &actual->balance);
 
-        actual.name = strdup(name);
-        actual.account = strdup(account);
-        actual.nip = strdup(nip);
+        actual->name = strdup(name);
+        actual->account = strdup(account);
+        actual->nip = strdup(nip);
 
         insert_data(actual, &users);
 
@@ -230,30 +232,44 @@ void getevent(void) {
 
         case 'F':
             event.etype = 8;
+            strcpy(event.args, ptmp);
+
             break;
 
         case '1':
             event.etype = 10;
+            strcpy(event.args, "500");
+
             break;
 
         case '2':
             event.etype = 11;
+            strcpy(event.args, "1000");
+
             break;
 
         case '3':
             event.etype = 12;
+            strcpy(event.args, "2000");
+
             break;
 
         case '4':
             event.etype = 13;
+            strcpy(event.args, "3000");
+
             break;
 
         case '5':
             event.etype = 14;
+            strcpy(event.args, "4000");
+
             break;
 
         case 'O':
             event.etype = 15;
+            strcpy(event.args, ptmp);
+
             break;
 
         case 'D':
@@ -312,25 +328,53 @@ FILE *open_file(char *name, char *mode) {
     return fp;
 }
 
-void create_account(char *name, char *account, char *nip, long balance) {
-    char tr_name[200], *datetime;
+FILE *open_transactions(char *name) {
+    char tr_name[200];
+    FILE *transactions_db;
 
     sprintf(tr_name, "%s_transactions.txt", name);
+    return open_file(tr_name, "a+");
+}
 
+void save_transaction(char *name, char *mode, long ammount) {
+    char *datetime;
+    FILE *transactions_db = open_transactions(name);
+
+    datetime = now_time();
+
+    fprintf(transactions_db, "[%s] %s de $%ld mxn\n", datetime, mode, ammount);
+
+    free(datetime);
+    fclose(transactions_db);
+}
+
+void save_users() {
+    FILE *users_db = open_file("user_database.txt", "w");
+    node_t *cursor = users.head;
+
+    while (cursor != NULL) {
+        fprintf(users_db, "%s\n", cursor->payload->name);
+        fprintf(users_db, "%s\n", cursor->payload->account);
+        fprintf(users_db, "%s\n", cursor->payload->nip);
+        fprintf(users_db, "%ld\n", cursor->payload->balance);
+
+        cursor = cursor->next;
+    }
+
+    fclose(users_db);
+}
+
+void create_account(char *name, char *account, char *nip, long balance) {
     FILE *users_db = open_file("user_database.txt", "a+");
-    FILE *transactions_db = open_file(tr_name, "w");
 
     fprintf(users_db, "%s\n", name);
     fprintf(users_db, "%s\n", account);
     fprintf(users_db, "%s\n", nip);
     fprintf(users_db, "%ld\n", balance);
 
-    datetime = now_time();
-    fprintf(transactions_db, "[%s] Ingreso de $%ld mxn\n", datetime, balance);
-    free(datetime);
+    save_transaction(name, "Deposito", balance);
 
     fclose(users_db);
-    fclose(transactions_db);
 }
 
 void config() {
@@ -381,7 +425,7 @@ int c_nip(void) {
     node_t *cursor = users.head;
     char nip[100];
 
-    while (cursor != NULL && strcmp(event.args, cursor->payload.account) != 0)
+    while (cursor != NULL && strcmp(event.args, cursor->payload->account) != 0)
         cursor = cursor->next;
 
     if (cursor != NULL) {
@@ -389,7 +433,7 @@ int c_nip(void) {
         fgets(nip, 99, stdin);
         stripln(nip);
 
-        if (strcmp(cursor->payload.nip, nip) == 0) {
+        if (strcmp(cursor->payload->nip, nip) == 0) {
             user = cursor->payload;
 
             return 0;
@@ -409,15 +453,30 @@ int mensaje_init(void) {
 }
 
 int mensaje_I(void) {
-    printf("function mensaje_I\n");
+    clear();
+    printf("Para depositar dinero tiene que teclear F seguido de dos puntos y\n");
+    printf("la cantidad que desea depositar. Tiene que ser multiplo de 100\n");
+    printf("Ejemplo:  F:200\n");
+
+    printf("\n\n>");
 }
 
 int mensaje_R(void) {
-    printf("function mensaje_R\n");
+    clear();
+    printf("Opciones para retirar dinero:\n");
+    printf("\t1: $500 \t4: $3000\n");
+    printf("\t2: $1000\t5: $4000\n");
+    printf("\t3: $2000\tO: Otra cantidad\n");
+    printf("\nSi se desea ingresar otra cantidad, teclear O seguido de dos puntos\n");
+    printf("y la cantidad que se desea sacar. Ejemplo O:200\n");
+
+    printf("\n\n>");
 }
 
-int Imp_saldo(void) {
-    printf("function Imp_saldo\n");
+int imp_saldo(void) {
+    clear();
+    printf("Tu saldo actual es: $%ld mxn\n", user->balance);
+    cont();
 }
 
 int mensaje_mov(void) {
@@ -430,15 +489,34 @@ int mensaje_C(void) {
 
 int mensaje_prin(void) {
     clear();
-    printf("function mensaje_prin\n");
+    printf("Opciones disponibles:\n");
+    printf("\tI: Depositar dinero\n");
+    printf("\tR: Retirar dinero\n");
+    printf("\tS: Consultar saldo\n");
+    printf("\tM: Consultar movimientos\n");
+    printf("\tC: Cambiar NIP\n");
+
+    printf("\n\n>");
 }
 
 int mul_100_I(void) {
-    printf("function mul_100_I\n");
+    long number;
+
+    number = atol(event.args);
+
+    if (number % 100 != 0)
+        return 2;
+    else
+        return 3;
 }
 
 int mul_100_R(void) {
-    printf("function mul_100_R\n");
+    long ammount = atol(event.args);
+
+    if (ammount % 100 != 0 || user->balance - ammount < 0)
+        return 4;
+    else
+        return 5;
 }
 
 int m_filt(void) {
@@ -463,15 +541,43 @@ int error_mul_100_I(void) {
 }
 
 int agr_I(void) {
-    printf("function agr_I\n");
+    user->balance += atol(event.args);
+
+    save_transaction(user->name, "Deposito", atol(event.args));
+    save_users();
+
+    clear();
+    printf("Saldo actual: %ld\n", user->balance);
+    cont();
+    clear();
+    printf("Gracias por haber usado Cajeros Cristobalianos S.A. de C.V.\n");
+    cont();
 }
 
 int error_mul_100_R(void) {
-    printf("function error_mul_100_R\n");
+    clear();
+
+    if (atol(event.args) % 100 != 0)
+        printf("El monto ingresado no es multiplo de 100\n");
+
+    else
+        printf("No cuentas con los fondos suficientes para retirar %ld\n", atol(event.args));
+
+    cont();
 }
 
 int agr_R(void) {
-    printf("function agr_R\n");
+    user->balance -= atol(event.args);
+
+    save_transaction(user->name, "Retiro", atol(event.args));
+    save_users();
+
+    clear();
+    printf("Saldo actual: %ld\n", user->balance);
+    cont();
+    clear();
+    printf("Gracias por haber usado Cajeros Cristobalianos S.A. de C.V.\n");
+    cont();
 }
 
 int error_C(void) {
