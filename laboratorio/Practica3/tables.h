@@ -24,7 +24,7 @@ extern int c_nip(void);
 extern int mensaje_init(void);
 extern int mensaje_I(void);
 extern int mensaje_R(void);
-extern int Imp_saldo(void);
+extern int imp_saldo(void);
 extern int mensaje_mov(void);
 extern int mensaje_C(void);
 extern int mensaje_prin(void);
@@ -66,7 +66,7 @@ ACTION_TAB action_table[] = {
     {-1, mensaje_init, -1, 0},
     {2, mensaje_I, -1, 2},
     {3, mensaje_R, -1, 3},
-    {4, Imp_saldo, -1, 0},
+    {4, imp_saldo, -1, 1},
     {5, mensaje_mov, -1, 4},
     {6, mensaje_C, -1, 5},
     {-1, mensaje_prin, -1, 1},
