@@ -64,7 +64,7 @@ typedef struct user_t {
 
 typedef struct node_t {
     struct node_t *next, *prev;
-    user_t payload;
+    user_t *payload;
 } node_t;
 
 typedef struct llist_t {
@@ -76,7 +76,7 @@ typedef struct llist_t {
  * variables globales que se necesiten en el programa *
  ******************************************************/
 llist_t users;
-user_t user;
+user_t *user;
 
 /********************* EVENTOS *******************
  * En esta seccion se declarar como constantes   *
