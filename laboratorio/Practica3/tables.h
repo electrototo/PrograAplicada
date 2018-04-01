@@ -31,17 +31,10 @@ extern int mensaje_prin(void);
 extern int mul_100_I(void);
 extern int mensaje_I(void);
 extern int mul_100_R(void);
-extern int mul_100_R(void);
-extern int mul_100_R(void);
-extern int mul_100_R(void);
-extern int mul_100_R(void);
-extern int mul_100_R(void);
 extern int mensaje_R(void);
 extern int m_filt(void);
 extern int m_todo(void);
-extern int mensaje_mov(void);
 extern int check_P(void);
-extern int mensaje_C(void);
 extern int mensaje_prin(void);
 extern int error_nip(void);
 extern int error_mul_100_I(void);
@@ -50,6 +43,7 @@ extern int error_mul_100_R(void);
 extern int agr_R(void);
 extern int error_C(void);
 extern int agr_C(void);
+extern int mensaje_desp(void);
 
 
 /******************** TABLAS ********************
@@ -69,20 +63,21 @@ ACTION_TAB action_table[] = {
     {4, imp_saldo, -1, 1},
     {5, mensaje_mov, -1, 4},
     {6, mensaje_C, -1, 5},
+    {7, mensaje_desp, -1, 0},
     {-1, mensaje_prin, -1, 1},
-    {8, mul_100_I, 0, -1},
+    {9, mul_100_I, 0, -1},
     {-1, mensaje_I, -1, 2},
-    {10, mul_100_R, 0, -1},
     {11, mul_100_R, 0, -1},
     {12, mul_100_R, 0, -1},
     {13, mul_100_R, 0, -1},
     {14, mul_100_R, 0, -1},
     {15, mul_100_R, 0, -1},
+    {16, mul_100_R, 0, -1},
     {-1, mensaje_R, -1, 3},
-    {17, m_filt, -1, 1},
-    {18, m_todo, -1, 1},
+    {18, m_filt, -1, 1},
+    {19, m_todo, -1, 1},
     {-1, mensaje_mov, -1, 4},
-    {20, check_P, 0, -1},
+    {21, check_P, 0, -1},
     {-1, mensaje_C, -1, 5},
 };
 
@@ -106,10 +101,9 @@ AUX_TAB aux_table[] = {
 // {ESTADO_0,     0,      1},
 STATE_TAB state_table[] = {
     {INIT, 0, 1},
-    {MAIN, 2, 7},
-    {DEPOSIT, 8, 9},
-    {WITHDRAWAL, 10, 16},
-    {MOV, 17, 19},
-    {CHANGE, 20, 21},
-    
+    {MAIN, 2, 8},
+    {DEPOSIT, 9, 10},
+    {WITHDRAWAL, 11, 17},
+    {MOV, 18, 20},
+    {CHANGE, 21, 22},
 };
