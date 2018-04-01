@@ -54,7 +54,11 @@ void mensaje_trabajo();
 void config();
 void quit(int);
 
+void stripln(char *);
+
 char *now_time();
+
+FILE *open_file(char *name, char *mode);
 
 /*************** FUNCION PRINCIPAL ***************/
 int main(int argc, char **argv) {
@@ -103,11 +107,91 @@ int main(int argc, char **argv) {
     }
 }
 
+// linked lists
+node_t *create_new_node(user_t data, node_t *next, node_t *prev) {
+    node_t *new_node = (node_t *) malloc(sizeof(node_t));
+
+    if (new_node == NULL) {
+        printf("malloc error\n");
+
+        exit(0);
+    }
+
+    new_node->next = next;
+    new_node->prev = prev;
+    new_node->payload = data;
+
+    return new_node;
+}
+
+node_t *insert_data(user_t data, llist_t *llist) {
+    node_t *new_node = create_new_node(data, llist->head, NULL);
+
+    if (llist->tail == NULL)
+        llist->tail = new_node;
+
+    if (llist->head != NULL)
+        llist->head->prev = new_node;
+
+    llist->head = new_node;
+
+    return new_node;
+}
+
+user_t *find_user(char *account, llist_t *llist) {
+    node_t *cursor;
+
+    cursor = llist->head;
+    while (cursor != NULL && strcmp(account, cursor->payload.account) != 0)
+        cursor = cursor->next;
+
+    if (cursor != NULL)
+        return &cursor->payload;
+
+    else
+        return NULL;
+}
+
+void load_users() {
+    long fl;
+    user_t actual;
+
+    char name[100], account[20], nip[100];
+
+    FILE *users_db = open_file("user_database.txt", "r");
+
+    fseek(users_db, 0, SEEK_END);
+    fl = ftell(users_db);
+    fseek(users_db, 0, SEEK_SET);
+
+    while (ftell(users_db) < fl) {
+        fscanf(users_db, "%s\n", name);
+        fscanf(users_db, "%s\n", account);
+        fscanf(users_db, "%s\n", nip);
+        fscanf(users_db, "%ld\n", &actual.balance);
+
+        actual.name = strdup(name);
+        actual.account = strdup(account);
+        actual.nip = strdup(nip);
+
+        insert_data(actual, &users);
+
+        printf("User: %s loaded\n", name);
+    }
+
+    fclose(users_db);
+}
+
 void initialise(void) {
     state = 0;
 
+    users.head = NULL;
+    users.tail = NULL;
+
     mensaje_trabajo();
     mensaje_init();
+
+    load_users();
 }
 
 void getevent(void) {
@@ -115,9 +199,13 @@ void getevent(void) {
     ptmp = &buf[2];
 
     fgets(buf, BUFFER + 1, stdin);
+    stripln(buf);
+
     switch (buf[0]) {
         case 'T':
             event.etype = 0;
+            strcpy(event.args, ptmp);
+
             break;
 
         case 'I':
@@ -184,7 +272,6 @@ void getevent(void) {
         default:
             event.etype =-1;
             break;
-
     }
 }
 
@@ -195,7 +282,7 @@ void quit(int dummy) {
 
 void stripln(char *str) {
     int offset = strlen(str);
-    str[offset - 2] = 0;
+    str[offset - 1] = 0;
 }
 
 char *now_time() {
@@ -262,8 +349,9 @@ void config() {
     stripln(account);
 
     while (balance < 0) {
-        printf("Saldo actual (mayor a 0):   ");
+    printf("Saldo actual (>= 0):        ");
         scanf("%ld", &balance);
+        getchar();
     }
 
     printf("Nip:                        ");
@@ -290,9 +378,25 @@ void mensaje_trabajo() {
 }
 
 int c_nip(void) {
-    printf("function c_nip\n");
+    node_t *cursor = users.head;
+    char nip[100];
 
-    return 0;
+    while (cursor != NULL && strcmp(event.args, cursor->payload.account) != 0)
+        cursor = cursor->next;
+
+    if (cursor != NULL) {
+        printf("Ingresa el nip: ");
+        fgets(nip, 99, stdin);
+        stripln(nip);
+
+        if (strcmp(cursor->payload.nip, nip) == 0) {
+            user = cursor->payload;
+
+            return 0;
+        }
+    }
+
+    return 1;
 }
 
 int mensaje_init(void) {
@@ -325,6 +429,7 @@ int mensaje_C(void) {
 }
 
 int mensaje_prin(void) {
+    clear();
     printf("function mensaje_prin\n");
 }
 
@@ -350,6 +455,7 @@ int check_P(void) {
 
 int error_nip(void) {
     printf("function error_nip\n");
+    printf("\n\tEl numero de tarjeta y/o el nip son incorrectos\n");
 }
 
 int error_mul_100_I(void) {
@@ -375,8 +481,6 @@ int error_C(void) {
 int agr_C(void) {
     printf("function agr_C\n");
 }
-
-
 
 int nul(void) {
 }

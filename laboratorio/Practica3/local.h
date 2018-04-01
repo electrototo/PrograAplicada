@@ -56,12 +56,27 @@ struct state_tab_s {
 };
 typedef struct state_tab_s STATE_TAB;
 
+typedef struct user_t {
+    char *name, *account, *nip;
+    long balance;
+    int active;
+} user_t;
+
+typedef struct node_t {
+    struct node_t *next, *prev;
+    user_t payload;
+} node_t;
+
+typedef struct llist_t {
+    node_t *head, *tail;
+} llist_t;
 
 /********************* GLOBALES ***********************
  * En esta seccion se pueden declarar todas           *
  * variables globales que se necesiten en el programa *
  ******************************************************/
-
+llist_t users;
+user_t user;
 
 /********************* EVENTOS *******************
  * En esta seccion se declarar como constantes   *
