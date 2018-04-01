@@ -79,12 +79,11 @@ ACTION_TAB action_table[] = {
     {14, mul_100_R, 0, -1},
     {15, mul_100_R, 0, -1},
     {-1, mensaje_R, -1, 3},
-    {17, m_filt, -1, 0},
-    {18, m_todo, -1, 0},
+    {17, m_filt, -1, 1},
+    {18, m_todo, -1, 1},
     {-1, mensaje_mov, -1, 4},
     {20, check_P, 0, -1},
     {-1, mensaje_C, -1, 5},
-    
 };
 
 /*************** TABLA AUXILIAR ***************/
