@@ -10,12 +10,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <signal.h>
 #include <time.h>
+#include <signal.h>
 
 #include "tables.h"
 
 #define clear() system("clear")
+
 
 /*************** VARIABLES GLOBALES ***************/
 EVENT event;
@@ -34,12 +35,15 @@ int mensaje_R(void);
 int imp_saldo(void);
 int mensaje_mov(void);
 int mensaje_C(void);
+int mensaje_desp(void);
 int mensaje_prin(void);
 int mul_100_I(void);
 int mul_100_R(void);
 int m_filt(void);
 int m_todo(void);
+int mensaje_mov(void);
 int check_P(void);
+int mensaje_prin(void);
 int error_nip(void);
 int error_mul_100_I(void);
 int agr_I(void);
@@ -59,6 +63,8 @@ void stripln(char *);
 char *now_time();
 
 FILE *open_file(char *name, char *mode);
+
+
 
 /*************** FUNCION PRINCIPAL ***************/
 int main(int argc, char **argv) {
@@ -87,23 +93,22 @@ int main(int argc, char **argv) {
         for ((actx = state_table[state].start);(action_table[actx].event != event.etype) && (actx < state_table[state].end);actx++);
 
         outcome = (*(action_table[actx].action))();
+            if(action_table[actx].moreacts == -1)
+                state = action_table[actx].nextstate;
+            else {
+                auxx = action_table[actx].moreacts + outcome;
+                while (auxx != -1){
+                    outcome = (*(aux_table[auxx].action))();
+                    if (aux_table[auxx].moreacts == -1 ){
+                        state = aux_table[auxx].nextstate;
+                        auxx = -1;
+                    }
+                    else
+                        auxx = aux_table[auxx].moreacts + outcome;
 
-        if(action_table[actx].moreacts == -1)
-            state = action_table[actx].nextstate;
-
-        else {
-            auxx = action_table[actx].moreacts + outcome;
-            while (auxx != -1){
-                outcome = (*(aux_table[auxx].action))();
-                if (aux_table[auxx].moreacts == -1){
-                    state = aux_table[auxx].nextstate;
-                    auxx = -1;
                 }
-                else
-                    auxx = aux_table[auxx].moreacts + outcome;
-
-            }
         }
+
     }
 }
 
@@ -230,60 +235,66 @@ void getevent(void) {
             event.etype = 6;
             break;
 
+        case 'E':
+            event.etype = 7;
+            break;
+
         case 'F':
-            event.etype = 8;
+            event.etype = 9;
             strcpy(event.args, ptmp);
 
             break;
 
         case '1':
-            event.etype = 10;
+            event.etype = 11;
             strcpy(event.args, "500");
 
             break;
 
         case '2':
-            event.etype = 11;
+            event.etype = 12;
             strcpy(event.args, "1000");
 
             break;
 
         case '3':
-            event.etype = 12;
+            event.etype = 13;
             strcpy(event.args, "2000");
 
             break;
 
         case '4':
-            event.etype = 13;
+            event.etype = 14;
             strcpy(event.args, "3000");
 
             break;
 
         case '5':
-            event.etype = 14;
+            event.etype = 15;
             strcpy(event.args, "4000");
 
             break;
 
         case 'O':
-            event.etype = 15;
+            event.etype = 16;
             strcpy(event.args, ptmp);
 
             break;
 
         case 'D':
-            event.etype = 17;
+            event.etype = 18;
             strcpy(event.args, ptmp);
 
             break;
 
         case 'A':
-            event.etype = 18;
+            event.etype = 19;
             break;
 
         case 'P':
-            event.etype = 20;
+            event.etype = 21;
+            strcpy(event.args, ptmp);
+
             break;
 
         
@@ -293,7 +304,14 @@ void getevent(void) {
     }
 }
 
+
 /* FUNCIONES DE IMPLEMENTACION */
+int mensaje_desp(void) {
+    clear();
+    printf("Gracias por haber usado Cajeros Cristobalianos S.A. de C.V.\n");
+    cont();
+}
+
 void quit(int dummy) {
     exit(0);
 }
@@ -427,6 +445,8 @@ int c_nip(void) {
     node_t *cursor = users.head;
     char nip[100];
 
+    clear();
+
     while (cursor != NULL && strcmp(event.args, cursor->payload->account) != 0)
         cursor = cursor->next;
 
@@ -493,7 +513,15 @@ int mensaje_mov(void) {
 }
 
 int mensaje_C(void) {
-    printf("function mensaje_C\n");
+    clear();
+
+    printf("Cambio de nip\n");
+    printf("Para poder realizar el cambio de nip es nesecario que ingrese P seguido\n");
+    printf("de dos puntos y el nuevo nip que desea usar, posteriormente tendra\n");
+    printf("que ingresarlo nuevamente\n");
+    printf("Ejemplo: P:nuevo_nip\n");
+
+    printf("\n\n>");
 }
 
 int mensaje_prin(void) {
@@ -504,6 +532,7 @@ int mensaje_prin(void) {
     printf("\tS: Consultar saldo\n");
     printf("\tM: Consultar movimientos\n");
     printf("\tC: Cambiar NIP\n");
+    printf("\tE: Retirar tarjeta\n");
 
     printf("\n\n>");
 }
@@ -555,7 +584,7 @@ int m_filt(void) {
 
     fclose(transactions);
 
-    cont();;
+    cont();
 }
 
 int m_todo(void) {
@@ -582,13 +611,22 @@ int m_todo(void) {
 }
 
 int check_P(void) {
+    char repeat[100];
+
     clear();
-    printf("function check_P\n");
+    printf("Digite de nuevo el nuevo nip: \n");
+    fgets(repeat, 99, stdin);
+    stripln(repeat);
+
+    if (strcmp(event.args, repeat) == 0)
+        return 7;
+    else
+        return 6;
 }
 
 int error_nip(void) {
-    printf("function error_nip\n");
     printf("\n\tEl numero de tarjeta y/o el nip son incorrectos\n");
+    cont();
 }
 
 int error_mul_100_I(void) {
@@ -638,11 +676,18 @@ int agr_R(void) {
 }
 
 int error_C(void) {
-    printf("function error_C\n");
+    clear();
+    printf("El nip ingresado no coincide con el anterior\n");
+    cont();
 }
 
 int agr_C(void) {
-    printf("function agr_C\n");
+    user->nip = strdup(event.args);
+    save_users();
+
+    clear();
+    printf("El nip fue cambiado exitosamente\n");
+    cont();
 }
 
 int nul(void) {
