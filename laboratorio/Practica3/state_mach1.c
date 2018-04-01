@@ -274,6 +274,8 @@ void getevent(void) {
 
         case 'D':
             event.etype = 17;
+            strcpy(event.args, ptmp);
+
             break;
 
         case 'A':
@@ -372,7 +374,7 @@ void create_account(char *name, char *account, char *nip, long balance) {
     fprintf(users_db, "%s\n", nip);
     fprintf(users_db, "%ld\n", balance);
 
-    save_transaction(name, "Deposito", balance);
+    save_transaction(account, "Deposito", balance);
 
     fclose(users_db);
 }
@@ -480,7 +482,14 @@ int imp_saldo(void) {
 }
 
 int mensaje_mov(void) {
-    printf("function mensaje_mov\n");
+    clear();
+    printf("Movimientos de la cuenta\n");
+    printf("\tA  Imprime todos los movimientos de la cuenta\n");
+    printf("\tD  Filtra los movimientos por deposito o retiro\n");
+    printf("\nSi se desea filtrar se tiene que ingresar D seguido de dos puntos\n");
+    printf("y la palabra deposito o retiro. Ejemplo D:retiro o D:deposito\n");
+
+    printf("\n\n>");
 }
 
 int mensaje_C(void) {
@@ -520,14 +529,60 @@ int mul_100_R(void) {
 }
 
 int m_filt(void) {
-    printf("function m_filt\n");
+    clear();
+
+    char t_name[100], *line = NULL, mode = 'a';
+    long length = 0, fe;
+
+    sprintf(t_name, "%s_transactions.txt", user->account);
+    FILE *transactions = open_file(t_name, "r");
+
+    fseek(transactions, 0, SEEK_END);
+    fe = ftell(transactions);
+    fseek(transactions, 0, SEEK_SET);
+
+    if (strcmp(event.args, "retiro") == 0)
+        mode = 'R';
+    else if (strcmp(event.args, "deposito") == 0)
+        mode = 'D';
+
+    while (ftell(transactions) < fe) {
+        getline(&line, &length, transactions);
+
+        if (line[27] == mode || mode == 'a')
+            printf("%s", line);
+    }
+
+    fclose(transactions);
+
+    cont();;
 }
 
 int m_todo(void) {
-    printf("function m_todo\n");
+    clear();
+
+    char t_name[100], *line = NULL;
+    long length = 0, fe;
+
+    sprintf(t_name, "%s_transactions.txt", user->account);
+    FILE *transactions = open_file(t_name, "r");
+
+    fseek(transactions, 0, SEEK_END);
+    fe = ftell(transactions);
+    fseek(transactions, 0, SEEK_SET);
+
+    while (ftell(transactions) < fe) {
+        getline(&line, &length, transactions);
+        printf("%s", line);
+    }
+
+    fclose(transactions);
+
+    cont();
 }
 
 int check_P(void) {
+    clear();
     printf("function check_P\n");
 }
 
@@ -537,13 +592,15 @@ int error_nip(void) {
 }
 
 int error_mul_100_I(void) {
-    printf("function error_mul_100_I\n");
+    clear();
+    printf("La cantidad ingresada no es multiplo de 100\n");
+    cont();
 }
 
 int agr_I(void) {
     user->balance += atol(event.args);
 
-    save_transaction(user->name, "Deposito", atol(event.args));
+    save_transaction(user->account, "Deposito", atol(event.args));
     save_users();
 
     clear();
@@ -569,7 +626,7 @@ int error_mul_100_R(void) {
 int agr_R(void) {
     user->balance -= atol(event.args);
 
-    save_transaction(user->name, "Retiro", atol(event.args));
+    save_transaction(user->account, "Retiro", atol(event.args));
     save_users();
 
     clear();
