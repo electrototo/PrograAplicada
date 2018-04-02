@@ -551,6 +551,7 @@ void mensaje_trabajo() {
     cont();
 }
 
+// checa si la cuenta esta activa y si esta existe
 int c_nip(void) {
     node_t *cursor = users.head;
     char nip[100];
@@ -565,6 +566,8 @@ int c_nip(void) {
         fgets(nip, 99, stdin);
         stripln(nip);
 
+        // si el nip ingresado es la adecuada para la cuenta, entonces
+        // guarda la "sesion" en user y regresa el estado correspondiente
         if (strcmp(cursor->payload->nip, nip) == 0) {
             user = cursor->payload;
 
@@ -572,11 +575,14 @@ int c_nip(void) {
         }
     }
 
+    // si no, esta activa o el nip es el incorrecto, marca error 
     user = cursor->payload;
 
     return 1;
 }
 
+// mensaje agradable e informativo a la vista del usuario para saber el funcionamiento
+// de la maquina
 int mensaje_init(void) {
     clear();
 
@@ -586,6 +592,7 @@ int mensaje_init(void) {
     printf("y el numero de su tarjeta. Ejemplo: T:1234567898765432\n\n>");
 }
 
+// mensaje de instrucciones para depositar dinero
 int mensaje_I(void) {
     clear();
     printf("Para depositar dinero tiene que teclear F seguido de dos puntos y\n");
@@ -595,6 +602,7 @@ int mensaje_I(void) {
     printf("\n\n>");
 }
 
+// mensaje de instrucciones para retirar dinero
 int mensaje_R(void) {
     clear();
     printf("Opciones para retirar dinero:\n");
@@ -607,12 +615,15 @@ int mensaje_R(void) {
     printf("\n\n>");
 }
 
+// mensaje que contiene el saldo del usuario
 int imp_saldo(void) {
     clear();
     printf("Tu saldo actual es: $%ld mxn\n", user->balance);
     cont();
 }
 
+// mensaje de instrucciones para listar los movimientos
+// dentro de la cuenta del usuario
 int mensaje_mov(void) {
     clear();
     printf("Movimientos de la cuenta\n");
@@ -624,6 +635,7 @@ int mensaje_mov(void) {
     printf("\n\n>");
 }
 
+// mensaje de instrucciones para el cambio de nip
 int mensaje_C(void) {
     clear();
 
@@ -636,6 +648,7 @@ int mensaje_C(void) {
     printf("\n\n>");
 }
 
+// mensaje de instrucciones para el uso del cajero
 int mensaje_prin(void) {
     clear();
     printf("Opciones disponibles:\n");
