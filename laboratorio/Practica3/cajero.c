@@ -542,6 +542,8 @@ void mensaje_trabajo() {
     clear();
 
     printf("Disenado y programado por Cristobal Liendo Infante\n\n");
+    cont();
+    clear();
     printf("Este programa busca simular el funcionamiento de un cajero autoatico\n");
     printf("a traves de maquinas de estado finitos, con la opcion -c para poder\n");
     printf("registrar a los cuentahabitantes\n");
