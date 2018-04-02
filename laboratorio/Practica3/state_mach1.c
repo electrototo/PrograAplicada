@@ -12,6 +12,7 @@
 #include <string.h>
 #include <time.h>
 #include <signal.h>
+#include <time.h>
 
 #include "tables.h"
 
@@ -190,6 +191,8 @@ void load_users() {
 }
 
 void initialise(void) {
+    srand(time(NULL));
+
     state = 0;
 
     users.head = NULL;
@@ -401,6 +404,8 @@ void config() {
     char name[100], account[20], nip[100];
     long balance = -1;
 
+    int i;
+
     mensaje_trabajo();
     clear();
 
@@ -408,19 +413,23 @@ void config() {
     fgets(name, 99, stdin);
     stripln(name);
 
-    printf("Numero de cuenta:           ");
-    fgets(account, 19, stdin);
-    stripln(account);
-
     while (balance < 0) {
     printf("Saldo actual (>= 0):        ");
         scanf("%ld", &balance);
         getchar();
     }
 
+    for (i = 0; i < 16; i++)
+        account[i] = (char) (random() % 10 + '0');
+
+    account[i] = 0;
+
     printf("Nip:                        ");
     fgets(nip, 99, stdin);
     stripln(nip);
+
+    printf("\n\nEl numero de cuenta para el cuentahabitante %s es el siguiente:\n", name);
+    printf("Numero de cuenta:           %s\n", account);
 
     create_account(name, account, nip, balance);
 }
