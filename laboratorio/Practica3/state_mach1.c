@@ -177,14 +177,13 @@ void load_users() {
         fscanf(users_db, "%s\n", account);
         fscanf(users_db, "%s\n", nip);
         fscanf(users_db, "%ld\n", &actual->balance);
+        fscanf(users_db, "%d\n", &actual->active);
 
         actual->name = strdup(name);
         actual->account = strdup(account);
         actual->nip = strdup(nip);
 
         insert_data(actual, &users);
-
-        printf("User: %s loaded\n", name);
     }
 
     fclose(users_db);
@@ -320,8 +319,13 @@ void quit(int dummy) {
 }
 
 void stripln(char *str) {
-    int offset = strlen(str);
-    str[offset - 1] = 0;
+    char *s = str;
+
+    while (*s != 0 && *s != '\n')
+        s++;
+
+    if (*s != 0)
+        *s = 0;
 }
 
 char *now_time() {
@@ -380,6 +384,7 @@ void save_users() {
         fprintf(users_db, "%s\n", cursor->payload->account);
         fprintf(users_db, "%s\n", cursor->payload->nip);
         fprintf(users_db, "%ld\n", cursor->payload->balance);
+        fprintf(users_db, "%d\n", cursor->payload->active);
 
         cursor = cursor->next;
     }
@@ -394,6 +399,7 @@ void create_account(char *name, char *account, char *nip, long balance) {
     fprintf(users_db, "%s\n", account);
     fprintf(users_db, "%s\n", nip);
     fprintf(users_db, "%ld\n", balance);
+    fprintf(users_db, "%d\n", 1);
 
     save_transaction(account, "Deposito", balance);
 
@@ -404,34 +410,75 @@ void config() {
     char name[100], account[20], nip[100];
     long balance = -1;
 
-    int i;
+    int i, option;
 
     mensaje_trabajo();
     clear();
 
-    printf("Nombre del cuentahbitante:  ");
-    fgets(name, 99, stdin);
-    stripln(name);
+    printf("Menu de configuracion:\n");
+    printf("\t[1] Regstistrar un nuevo usuario\n");
+    printf("\t[2] Dar de baja una cuenta\n");
+    printf("\t[3] Reactivar una cuenta\n");
+    printf("\t[4] Salir\n");
 
-    while (balance < 0) {
-    printf("Saldo actual (>= 0):        ");
-        scanf("%ld", &balance);
+    do {
+        printf("> ");
+        scanf("%d", &option);
         getchar();
+    } while (option < 1 || option > 4);
+
+    if (option == 1) {
+        printf("Nombre del cuentahbitante:  ");
+        fgets(name, 99, stdin);
+        stripln(name);
+
+        while (balance < 0) {
+        printf("Saldo actual (>= 0):        ");
+            scanf("%ld", &balance);
+            getchar();
+        }
+
+        for (i = 0; i < 16; i++)
+            account[i] = (char) (random() % 10 + '0');
+
+        account[i] = 0;
+
+        printf("Nip:                        ");
+        fgets(nip, 99, stdin);
+        stripln(nip);
+
+        printf("\n\nEl numero de cuenta para el cuentahabitante %s es el siguiente:\n", name);
+        printf("Numero de cuenta:           %s\n", account);
+
+        create_account(name, account, nip, balance);
     }
+    else if (option == 2 || option == 3) {
+        load_users();
+        clear();
 
-    for (i = 0; i < 16; i++)
-        account[i] = (char) (random() % 10 + '0');
+        do {
+            printf("Digite el numero de cuenta: ");
+            fgets(account, 19, stdin);
+            stripln(account);
 
-    account[i] = 0;
+            user = find_user(account, &users);
 
-    printf("Nip:                        ");
-    fgets(nip, 99, stdin);
-    stripln(nip);
+            if (user == NULL)
+                printf("\n\tUsuario no encontrado\n");
 
-    printf("\n\nEl numero de cuenta para el cuentahabitante %s es el siguiente:\n", name);
-    printf("Numero de cuenta:           %s\n", account);
+        } while (user == NULL);
 
-    create_account(name, account, nip, balance);
+        if (option == 2) {
+            user->active = 0;
+            printf("\nEl usuario %s con numero de cuenta %s fue dado de baja\n", user->name, user->account);
+        }
+        else {
+            user->active = 1;
+            printf("\nEl usuario %s con numero de cuenta %s fue reactivado\n", user->name, user->account);
+        }
+
+        save_users();
+    }
 }
 
 void cont() {
@@ -459,7 +506,7 @@ int c_nip(void) {
     while (cursor != NULL && strcmp(event.args, cursor->payload->account) != 0)
         cursor = cursor->next;
 
-    if (cursor != NULL) {
+    if (cursor != NULL && cursor->payload->active) {
         printf("Ingresa el nip: ");
         fgets(nip, 99, stdin);
         stripln(nip);
@@ -470,6 +517,8 @@ int c_nip(void) {
             return 0;
         }
     }
+
+    user = cursor->payload;
 
     return 1;
 }
@@ -634,7 +683,11 @@ int check_P(void) {
 }
 
 int error_nip(void) {
-    printf("\n\tEl numero de tarjeta y/o el nip son incorrectos\n");
+    if (user == NULL)
+        printf("\n\tEl numero de tarjeta y/o el nip son incorrectos\n");
+    else
+        printf("\n\tTu cuenta ha sido desactivada\n");
+
     cont();
 }
 
@@ -651,7 +704,7 @@ int agr_I(void) {
     save_users();
 
     clear();
-    printf("Saldo actual: %ld\n", user->balance);
+    printf("Saldo actual: $%ld mxn\n", user->balance);
     cont();
     clear();
     printf("Gracias por haber usado Cajeros Cristobalianos S.A. de C.V.\n");
