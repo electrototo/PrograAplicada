@@ -315,6 +315,20 @@ int mensaje_desp(void) {
 }
 
 void quit(int dummy) {
+    node_t *cursor = users.head;
+    node_t *tmp;
+
+    while (cursor != NULL) {
+        tmp = cursor;
+
+        free(cursor->payload->account);
+        free(cursor->payload->nip);
+        free(cursor->payload->name);
+
+        cursor = cursor->next;
+        free(tmp);
+    }
+
     exit(0);
 }
 
