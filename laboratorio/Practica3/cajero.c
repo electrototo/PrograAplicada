@@ -113,7 +113,8 @@ int main(int argc, char **argv) {
     }
 }
 
-// linked lists
+// ---------- Funciones para listas dinamicas ---------- // 
+// funcion auxiliar para crear un nuevo nodo dentro de la lista dinamica
 node_t *create_new_node(user_t *data, node_t *next, node_t *prev) {
     node_t *new_node = (node_t *) malloc(sizeof(node_t));
 
@@ -130,6 +131,7 @@ node_t *create_new_node(user_t *data, node_t *next, node_t *prev) {
     return new_node;
 }
 
+// funcion auxiliar para insertar en la lista dinamica
 node_t *insert_data(user_t *data, llist_t *llist) {
     node_t *new_node = create_new_node(data, llist->head, NULL);
 
@@ -144,6 +146,7 @@ node_t *insert_data(user_t *data, llist_t *llist) {
     return new_node;
 }
 
+// funcion auxiliar que srive para encontrar un usuario
 user_t *find_user(char *account, llist_t *llist) {
     node_t *cursor;
 
@@ -157,7 +160,10 @@ user_t *find_user(char *account, llist_t *llist) {
     else
         return NULL;
 }
+// ------- Termina funciones para listas dinamicas ------ // 
 
+// se encarga de cargar los usuarios en memoria a partir de la "base de datos"
+// que se encuentra en user_database.txt
 void load_users() {
     long fl;
     user_t *actual;
@@ -171,6 +177,8 @@ void load_users() {
     fseek(users_db, 0, SEEK_SET);
 
     while (ftell(users_db) < fl) {
+        // pide espacio de memoria para cada usuario que se encuentre en la
+        // base de datos
         actual = (user_t *) malloc(sizeof(user_t));
 
         fscanf(users_db, "%s\n", name);
@@ -183,26 +191,33 @@ void load_users() {
         actual->account = strdup(account);
         actual->nip = strdup(nip);
 
+        // inserta a los usuarios en la lista dinamica
         insert_data(actual, &users);
     }
 
     fclose(users_db);
 }
 
+// se ejecutan todas las funciones de inicializacion
 void initialise(void) {
+    // semilla "aleatoria" para generar la cuenta de los usuarios nuevos
     srand(time(NULL));
 
     state = 0;
 
+    // inicializa la lista dinamica
     users.head = NULL;
     users.tail = NULL;
 
+    // imprime mensajes necesarios
     mensaje_trabajo();
     mensaje_init();
 
+    // carga en memoria a los usuarios
     load_users();
 }
 
+// lee las senales para la maquina de estados
 void getevent(void) {
     char *ptmp;
     ptmp = &buf[2];
@@ -308,12 +323,15 @@ void getevent(void) {
 
 
 /* FUNCIONES DE IMPLEMENTACION */
+// imprime un agradable mensaje de despidad al usuario
 int mensaje_desp(void) {
     clear();
     printf("Gracias por haber usado Cajeros Cristobalianos S.A. de C.V.\n");
     cont();
 }
 
+// se ejecuta siempre cuando el usuario teclee control-c
+// para liberar la memoria ocupada
 void quit(int dummy) {
     node_t *cursor = users.head;
     node_t *tmp;
@@ -329,9 +347,12 @@ void quit(int dummy) {
         free(tmp);
     }
 
+    // no hay que olvidar esta funcion, si no el control-c
+    // no tendra efecto alguno
     exit(0);
 }
 
+// quitas las nuevas lineas de una cadena de texto
 void stripln(char *str) {
     char *s = str;
 
@@ -342,6 +363,7 @@ void stripln(char *str) {
         *s = 0;
 }
 
+// obtiene el tiempo de ahorita en formato de string
 char *now_time() {
     time_t now;
     struct tm *info;
@@ -356,6 +378,7 @@ char *now_time() {
     return buffer;
 }
 
+// funcion auxiliar que abre los archivos y verifica que estos existan
 FILE *open_file(char *name, char *mode) {
     FILE *fp;
 
@@ -369,6 +392,7 @@ FILE *open_file(char *name, char *mode) {
     return fp;
 }
 
+// abre el archivo de transacciones para un usuario determinado
 FILE *open_transactions(char *name) {
     char tr_name[200];
     FILE *transactions_db;
@@ -377,6 +401,8 @@ FILE *open_transactions(char *name) {
     return open_file(tr_name, "a+");
 }
 
+// guarda con timestamp la transaccion realizada, en el archivo que
+// le corresponde al usuario
 void save_transaction(char *name, char *mode, long ammount) {
     char *datetime;
     FILE *transactions_db = open_transactions(name);
@@ -389,6 +415,7 @@ void save_transaction(char *name, char *mode, long ammount) {
     fclose(transactions_db);
 }
 
+// guarda en la "base de datos" los usuarios que se encuentren cargados en memoria
 void save_users() {
     FILE *users_db = open_file("user_database.txt", "w");
     node_t *cursor = users.head;
@@ -406,6 +433,8 @@ void save_users() {
     fclose(users_db);
 }
 
+// guarda en el archivo un nuevo usuario
+// por default todos los usuarios van a estar a activos
 void create_account(char *name, char *account, char *nip, long balance) {
     FILE *users_db = open_file("user_database.txt", "a+");
 
@@ -420,6 +449,8 @@ void create_account(char *name, char *account, char *nip, long balance) {
     fclose(users_db);
 }
 
+// idealmente esta funcion solo va a ser ejecutada por el administrador del
+// sistema con el parametro -c al inciar el programa
 void config() {
     char name[100], account[20], nip[100];
     long balance = -1;
@@ -441,6 +472,7 @@ void config() {
         getchar();
     } while (option < 1 || option > 4);
 
+    // opcion de registrar a un nuevo usuario
     if (option == 1) {
         printf("Nombre del cuentahbitante:  ");
         fgets(name, 99, stdin);
@@ -466,6 +498,9 @@ void config() {
 
         create_account(name, account, nip, balance);
     }
+    // opcion para dar de baja una cuenta o reactivarla
+    // se encuentran en el mismo if porque son muy similares
+    // a excepcion del activado o desactivado
     else if (option == 2 || option == 3) {
         load_users();
         clear();
@@ -491,15 +526,18 @@ void config() {
             printf("\nEl usuario %s con numero de cuenta %s fue reactivado\n", user->name, user->account);
         }
 
+        // hubieron cambios, asi que guardalos
         save_users();
     }
 }
 
+// mensaje amigable para continuar despues de una accion
 void cont() {
     printf("\n\nPresione enter para continuar...");
     getchar();
 }
 
+// mensaje como requisito de la practica
 void mensaje_trabajo() {
     clear();
 
