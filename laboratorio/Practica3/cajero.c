@@ -16,6 +16,7 @@
 
 #include "tables.h"
 
+// macro para no escribir tanto
 #define clear() system("clear")
 
 
@@ -662,6 +663,8 @@ int mensaje_prin(void) {
     printf("\n\n>");
 }
 
+// verifica que la cantidad que se desea depositar
+// sea multiplo de 100
 int mul_100_I(void) {
     long number;
 
@@ -673,6 +676,8 @@ int mul_100_I(void) {
         return 3;
 }
 
+// verifica que la cantidad que se desea retrirar
+// sea multiplo de 100
 int mul_100_R(void) {
     long ammount = atol(event.args);
 
@@ -682,12 +687,15 @@ int mul_100_R(void) {
         return 5;
 }
 
+// funcion que se encarga de imprimir de forma filtrada
+// todos los movimientos realizados por el usuario
 int m_filt(void) {
     clear();
 
     char t_name[100], *line = NULL, mode = 'a';
     long length = 0, fe;
 
+    // genera el nombre del archivo de transacciones y lo abre
     sprintf(t_name, "%s_transactions.txt", user->account);
     FILE *transactions = open_file(t_name, "r");
 
@@ -695,6 +703,7 @@ int m_filt(void) {
     fe = ftell(transactions);
     fseek(transactions, 0, SEEK_SET);
 
+    // obtiene la modalidad de filtro que desea el usuario
     if (strcmp(event.args, "retiro") == 0)
         mode = 'R';
     else if (strcmp(event.args, "deposito") == 0)
@@ -703,6 +712,8 @@ int m_filt(void) {
     while (ftell(transactions) < fe) {
         getline(&line, &length, transactions);
 
+        // filtra todas las lineas de texto que cumpla con el filtro
+        // impuesto por el usuario
         if (line[27] == mode || mode == 'a')
             printf("%s", line);
     }
@@ -712,12 +723,14 @@ int m_filt(void) {
     cont();
 }
 
+// muestra todas las transacciones realizadas por el usuario
 int m_todo(void) {
     clear();
 
     char t_name[100], *line = NULL;
     long length = 0, fe;
 
+    // genera el nombre del archivo de transacciones y lo abre
     sprintf(t_name, "%s_transactions.txt", user->account);
     FILE *transactions = open_file(t_name, "r");
 
@@ -735,6 +748,8 @@ int m_todo(void) {
     cont();
 }
 
+// funcion que se encarga de verificar que el nip ingresado por el usuario
+// sea el nip asociado a la cuenta bancaria
 int check_P(void) {
     char repeat[100];
 
@@ -749,6 +764,7 @@ int check_P(void) {
         return 6;
 }
 
+// si el nip no coincide con la cuenta bancaria, imprime un error informativo
 int error_nip(void) {
     if (user == NULL)
         printf("\n\tEl numero de tarjeta y/o el nip son incorrectos\n");
@@ -758,16 +774,23 @@ int error_nip(void) {
     cont();
 }
 
+// imprime un error si la cantidad depositada no es multiplo de 100
 int error_mul_100_I(void) {
     clear();
     printf("La cantidad ingresada no es multiplo de 100\n");
     cont();
 }
 
+// funcion que se encarga de depositar la cantidad ingresada por el usuario
+// a su cuenta
 int agr_I(void) {
     user->balance += atol(event.args);
 
+    // genera un registro en los movimientos del usuario
     save_transaction(user->account, "Deposito", atol(event.args));
+    
+    // simulando las funciones del framework django para facilitar el codigo
+    // guarda los cambios en la "base de datos"
     save_users();
 
     clear();
@@ -778,6 +801,8 @@ int agr_I(void) {
     cont();
 }
 
+// error que se muestra cuando el usuario intenta retirar una cantidad de dinero
+// que no sea multiplo de 100
 int error_mul_100_R(void) {
     clear();
 
@@ -790,10 +815,16 @@ int error_mul_100_R(void) {
     cont();
 }
 
+// funcion que se encarga de retirar la cantidad ingresada por el usuario de su
+// cuenta
 int agr_R(void) {
     user->balance -= atol(event.args);
 
+    // genera un registro en los movimientos del usuario
     save_transaction(user->account, "Retiro", atol(event.args));
+
+    // simulando las funciones del framework django para facilitar el codigo
+    // guarda los cambios en la "base de datos"
     save_users();
 
     clear();
@@ -804,14 +835,20 @@ int agr_R(void) {
     cont();
 }
 
+// error si el usuario ingresa dos nips que no coinciden cuando este desea
+// cambiar su nip
 int error_C(void) {
     clear();
     printf("El nip ingresado no coincide con el anterior\n");
     cont();
 }
 
+// funcion que se ejecuta para cambiar el nip de un usuario
 int agr_C(void) {
     user->nip = strdup(event.args);
+
+    // simulando las funciones del framework django para facilitar el codigo
+    // guarda los cambios en la "base de datos"
     save_users();
 
     clear();
@@ -820,4 +857,4 @@ int agr_C(void) {
 }
 
 int nul(void) {
-}
+    }
