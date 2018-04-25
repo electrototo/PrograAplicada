@@ -11,7 +11,7 @@ void insertion_sort(int *arr, int length);
 void swap(int *a, int *b);
 
 int main() {
-    int arr[] = {7, -1, 2, 9, -23, 11, 99, -44, -100, 100};
+    int arr[] = {7, -1, 2, 3, 3, 3, -3};
 
     for (int i = 0; i < SIZE(arr); i++)
         printf("%d, ", arr[i]);
