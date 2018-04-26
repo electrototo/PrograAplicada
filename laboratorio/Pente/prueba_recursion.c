@@ -13,6 +13,9 @@ void check_winner(int tablero[MAX][MAX], int aux[MAX][MAX], int x, int y, int le
 
 int contador = 0;
 
+int follow(int tablero[MAX][MAX], int ficha, int x, int y, int dx, int dy, int level);
+int get_moves(int tablero[MAX][MAX], int x, int y);
+
 int main() {
     int tablero[MAX][MAX];
     int aux[MAX][MAX];
@@ -40,9 +43,10 @@ int main() {
     tablero[7][4] = 1;
 
     print_tablero(tablero);
-    for (int i = 0; i < MAX; i++)
-        for (int j = 0; j < MAX; j++)
-            check_winner(tablero, aux, j, i, 0, 0);
+
+    for (int y = 0; y < MAX; y++)
+        for (int x = 0; x < MAX; x++)
+            contador += get_moves(tablero, x, y);
 
     printf("contador: %d\n", contador);
 
@@ -66,85 +70,68 @@ void print_tablero(int tablero[MAX][MAX]) {
     }
 }
 
+int follow(int tablero[MAX][MAX], int ficha, int x, int y, int dx, int dy, int level) {
+    if (x < 0 || x >= MAX || y < 0 || y >= MAX) {
+        return level;
+    }
+
+    if (tablero[y][x] != ficha || level == 5) {
+        return level;
+    }
+
+    level = follow(tablero, ficha, x + dx, y + dy, dx, dy, level + 1);
+
+    return level;
+}
+
+int get_moves(int tablero[MAX][MAX], int x, int y) {
+    int total = 0, actual, ficha;
+
+    ficha = tablero[y][x];
+
+    if (ficha != 1 && ficha != -1)
+        return 0;
+
+    // peek ahead este
+    actual = follow(tablero, ficha, x, y, 1, 0, 0);
+
+    if (actual == 4 || actual == 5)
+        total++;
+
+    // peek ahead sureste
+    actual = follow(tablero, ficha, x, y, 1, 1, 0);
+
+    if (actual == 4 || actual == 5)
+        total++;
+
+    // peek ahead sur
+    actual = follow(tablero, ficha, x, y, 0, 1, 0);
+
+    if (actual == 4 || actual == 5)
+        total++;
+
+    // peek ahead suroeste
+    actual = follow(tablero, ficha, x, y, -1, 1, 0);
+
+    if (actual == 4 || actual == 5)
+        total++;
+
+    return total;
+}
+
 void check_winner_n(int tablero[MAX][MAX],int aux[MAX][MAX], int x, int y) {
-  int tempx, tempy;
-  tempx = x;
-  tempy = y;
+    int tempx, tempy;
+    int level;
 
-  while(aux[++tempx][y] && tablero[tempx][y]){
-    aux[tempx][y] = 1;
-    level++;
-  }
+    tempx = x;
+    tempy = y;
 
-  if(level == 3){
-    contador++;
-  }
-  
-}
+    while(aux[++tempx][y] && tablero[tempx][y]) {
+        aux[tempx][y] = 1;
+        level++;
+    }
 
-/*
-void check_winner(int tablero[MAX][MAX], int aux[MAX][MAX], int x, int y, int level, int dir) {
-    printf("nivel: %d\n", level);
-    printf("actual x, y: %d, %d\n", x, y);
-
-    if (x >= MAX || x < 0 || y >= MAX || y < 0)
-        return;
-
-    if (tablero[y][x] != 1)
-        return;
-
-    if (level == 3) {
-        printf("aumentando\n");
+    if(level == 3){
         contador++;
-        return;
-    }
-
-    // visita el norte
-    if (aux[y-1][x] != 1 && tablero[y-1][x] == 1) {
-        aux[y-1][x] = 1;
-        check_winner(tablero, aux, x, y - 1, level + 1);
-    }
-
-    // noreste
-    if (aux[y - 1][x + 1] != 1 && tablero[y - 1][x + 1] == 1) {
-        aux[y - 1][x + 1] = 1;
-        check_winner(tablero, aux, x + 1, y - 1, level + 1);
-    }
-
-    // este
-    if (aux[y][x + 1] != 1 && tablero[y][x + 1] == 1) {
-        aux[y][x + 1] = 1;
-        check_winner(tablero, aux, x + 1, y, level + 1);
-    }
-
-    // sureste
-    if (aux[y + 1][x + 1] != 1 && tablero[y + 1][x + 1] == 1) {
-        aux[y + 1][x + 1] = 1;
-        check_winner(tablero, aux, x + 1, y + 1, level + 1);
-    }
-
-    // sur
-    if (aux[y + 1][x] != 1 && tablero[y + 1][x] == 1) {
-        aux[y + 1][x] = 1;
-        check_winner(tablero, aux, x, y + 1, level + 1);
-    }
-
-    // suroeste
-    if (aux[y + 1][x - 1] != 1 && tablero[y + 1][x - 1] == 1) {
-        aux[y + 1][x - 1] = 1;
-        check_winner(tablero, aux, x - 1, y + 1, level + 1);
-    }
-
-    // oeste
-    if (aux[y][x - 1] != 1 && tablero[y][x - 1] == 1) {
-        aux[y][x - 1] = 1;
-        check_winner(tablero, aux, x - 1, y, level + 1);
-    }
-
-    // noroeste
-    if (aux[y - 1][x - 1] != 1 && tablero[y - 1][x - 1] == 1) {
-        aux[y - 1][x - 1] = 1;
-        check_winner(tablero, aux, x - 1, y - 1, level + 1);
     }
 }
-*/
