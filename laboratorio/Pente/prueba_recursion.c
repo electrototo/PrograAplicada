@@ -86,35 +86,19 @@ int follow(int tablero[MAX][MAX], int ficha, int x, int y, int dx, int dy, int l
 
 int get_moves(int tablero[MAX][MAX], int x, int y) {
     int total = 0, actual, ficha;
+    int dirs[4][2] = {{1, 0}, {1, 1}, {0, 1}, {-1, 1}};
 
     ficha = tablero[y][x];
-
     if (ficha != 1 && ficha != -1)
         return 0;
 
-    // peek ahead este
-    actual = follow(tablero, ficha, x, y, 1, 0, 0);
 
-    if (actual == 4 || actual == 5)
-        total++;
+    for (int i = 0; i < 4; i++) {
+        actual = follow(tablero, ficha, x, y, dirs[i][0], dirs[i][1], 0);
 
-    // peek ahead sureste
-    actual = follow(tablero, ficha, x, y, 1, 1, 0);
-
-    if (actual == 4 || actual == 5)
-        total++;
-
-    // peek ahead sur
-    actual = follow(tablero, ficha, x, y, 0, 1, 0);
-
-    if (actual == 4 || actual == 5)
-        total++;
-
-    // peek ahead suroeste
-    actual = follow(tablero, ficha, x, y, -1, 1, 0);
-
-    if (actual == 4 || actual == 5)
-        total++;
+        if (actual == 4 || actual == 5)
+            total++;
+    }
 
     return total;
 }
