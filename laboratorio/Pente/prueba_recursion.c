@@ -71,13 +71,11 @@ void print_tablero(int tablero[MAX][MAX]) {
 }
 
 int follow(int tablero[MAX][MAX], int ficha, int x, int y, int dx, int dy, int level) {
-    if (x < 0 || x >= MAX || y < 0 || y >= MAX) {
+    if (x < 0 || x >= MAX || y < 0 || y >= MAX)
         return level;
-    }
 
-    if (tablero[y][x] != ficha || level == 5) {
+    if (tablero[y][x] != ficha || level == 5)
         return level;
-    }
 
     level = follow(tablero, ficha, x + dx, y + dy, dx, dy, level + 1);
 
