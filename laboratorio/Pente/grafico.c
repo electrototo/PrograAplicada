@@ -18,11 +18,24 @@ static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer data) 
     return FALSE;
 }
 
+gboolean image_press_callback(GtkWidget *event_box, GdkEventButton *event, gpointer data);
+
+typedef struct image_data_t {
+    GtkWidget *image;
+    int x, y;
+} image_data_t;
+
+int p = 1;
+
 int main(int argc, char **argv) {
     GtkWidget *window, *toolbar, *dialog, *menu_bar, *button;
     GtkToolItem *tool_item;
 
     GtkWidget *hbox, *vbox;
+
+    // para las imagenes
+    GtkWidget *event_box;
+    image_data_t *img_data;
 
     // menubar
     GtkWidget *file_item, *edit_item, *help_item;
@@ -103,12 +116,20 @@ int main(int argc, char **argv) {
 
         for (int x = 0; x < 20; x++) {
             // button = gtk_button_new_with_label("O");
-            if (x % 2 == 0)
-                token = gtk_image_new_from_file("imagenes/red_token.jpg");
-            else
-                token = gtk_image_new_from_file("imagenes/blue_token.jpg");
+            token = gtk_image_new_from_file("imagenes/white_token.jpg");
 
-            gtk_container_add(GTK_CONTAINER(hbox), token);
+            img_data = (image_data_t *) g_malloc(sizeof(image_data_t));
+
+            img_data->x = x;
+            img_data->y = y;
+            img_data->image = token;
+
+            event_box = gtk_event_box_new();
+            gtk_container_add(GTK_CONTAINER(event_box), token);
+
+            g_signal_connect(G_OBJECT(event_box), "button_press_event", G_CALLBACK(image_press_callback), img_data);
+
+            gtk_container_add(GTK_CONTAINER(hbox), event_box);
             gtk_widget_show(token);
         }
     }
@@ -131,7 +152,6 @@ int main(int argc, char **argv) {
     gtk_container_add(GTK_CONTAINER(turn), create_label("Jugador 1"));
 
     // gtk_container_add(GTK_CONTAINER(turn), create_label("Turno"));
-
     frame = gtk_frame_new("Comidas");
     gtk_container_add(GTK_CONTAINER(sidebar_menu), frame);
     gtk_container_add(GTK_CONTAINER(frame), comidas);
@@ -144,6 +164,23 @@ int main(int argc, char **argv) {
     gtk_main();
 
     return 0;
+}
+
+gboolean image_press_callback(GtkWidget *event_box, GdkEventButton *event, gpointer data) {
+    image_data_t *img_data = (image_data_t *) data;
+    GdkPixbuf *new_image;
+
+    printf("Click at: %d, %d\n", img_data->x, img_data->y);
+
+    if (p == 1) {
+        new_image = gdk_pixbuf_new_from_file("imagenes/blue_token.jpg", NULL);
+        p = 2;
+    }
+    else {
+        new_image = gdk_pixbuf_new_from_file("imagenes/red_token.jpg", NULL);
+        p = 1;
+    }
+    gtk_image_set_from_pixbuf(GTK_IMAGE(img_data->image), new_image);
 }
 
 GtkWidget *create_label(char *str) {
