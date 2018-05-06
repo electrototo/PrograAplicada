@@ -23,6 +23,8 @@ int main(int argc, char **argv) {
 
     // menubar
     GtkWidget *file_item, *edit_item, *help_item;
+    GtkWidget *file_menu, *edit_menu, *help_menu;
+    GtkWidget *open_item, *new_game_item, *save_item, *save_as_item, *quit_item;
     // end menubar
 
     // tablero principal
@@ -56,12 +58,40 @@ int main(int argc, char **argv) {
     edit_item = gtk_menu_item_new_with_label("Edit");
     help_item = gtk_menu_item_new_with_label("Help");
 
-    gtk_menu_append(GTK_MENU(menu_bar), file_item);
-    gtk_menu_append(GTK_MENU(menu_bar), edit_item);
-    gtk_menu_append(GTK_MENU(menu_bar), help_item);
+    gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar), file_item);
+    gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar), edit_item);
+    gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar), help_item);
 
     gtk_container_add(GTK_CONTAINER(vbox), menu_bar);
     //end menubar
+
+    // file menu
+    file_menu = gtk_menu_new();
+    gtk_menu_item_set_submenu(GTK_MENU_ITEM(file_item), file_menu);
+
+    open_item = gtk_menu_item_new_with_label("Open file");
+    new_game_item = gtk_menu_item_new_with_label("New game");
+    save_item = gtk_menu_item_new_with_label("Save");
+    save_as_item = gtk_menu_item_new_with_label("Save as...");
+    quit_item = gtk_menu_item_new_with_label("Quit");
+
+    gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), open_item);
+    gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), new_game_item);
+    gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), save_item);
+    gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), save_as_item);
+    gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), quit_item);
+
+    // end file menu 
+
+    // edit menu
+    edit_menu = gtk_menu_new();
+    gtk_menu_item_set_submenu(GTK_MENU_ITEM(edit_item), edit_menu);
+    // end edit menu
+
+    // help menu
+    help_menu = gtk_menu_new();
+    gtk_menu_item_set_submenu(GTK_MENU_ITEM(help_item), help_menu);
+    // end help menu
 
     gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, TRUE, 0);
 
@@ -74,7 +104,7 @@ int main(int argc, char **argv) {
     comidas = gtk_vbox_new(TRUE, 0);
 
 
-    // Toolbar
+    // Toolbar se puede hacer en un ciclo
     toolbar = gtk_toolbar_new();
 
     tool_item = gtk_tool_button_new_from_stock(GTK_STOCK_NEW);
