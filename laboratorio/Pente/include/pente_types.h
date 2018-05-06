@@ -22,8 +22,14 @@ typedef struct game_info_t {
 
 typedef struct menu_item_dt {
     char label[15];
-    void (*callback)(GtkMenuItem *, gpointer);
+    void (*callback)(GtkWidget *, gpointer);
     gpointer data;
 } menu_item_dt;
+
+typedef struct tool_item_dt {
+    gchar stock_id[50];
+    void (*callback)(GtkWidget *, gpointer);
+    gpointer data;
+} tool_item_dt;
 
 #endif
