@@ -6,11 +6,13 @@ LIBS = $(shell $(PKGCONFIG) gtk+-2.0 --libs)
 
 ODIR=obj
 
-_DEPS = callbacks.h
+_DEPS = callbacks.h menus.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = grafico.o callbacks.o
+_OBJ = grafico.o callbacks.o menus.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
+
+all: grafico
 
 $(ODIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
