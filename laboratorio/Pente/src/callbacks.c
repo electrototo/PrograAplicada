@@ -42,6 +42,6 @@ gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer data) {
     return FALSE;
 }
 
-void gen_callback(GtkMenuItem *menuitem, gpointer data) {
+void gen_callback(GtkWidget *menuitem, gpointer data) {
     g_print("gen_callback\n");
 }

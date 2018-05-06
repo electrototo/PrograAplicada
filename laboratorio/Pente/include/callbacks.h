@@ -12,6 +12,6 @@ gboolean image_press_callback(GtkWidget *event_box, GdkEventButton *event, gpoin
 void destroy(GtkWidget *widget, gpointer data);
 gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer data);
 
-void gen_callback(GtkMenuItem *menuitem, gpointer data);
+void gen_callback(GtkWidget *menuitem, gpointer data);
 
 #endif
