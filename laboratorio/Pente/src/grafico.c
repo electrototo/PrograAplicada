@@ -6,26 +6,10 @@
 
 #include <gtk/gtk.h>
 
+#include "callbacks.h" 
+#include "pente_types.h" 
+
 GtkWidget *create_label(char *str);
-
-static void destroy(GtkWidget *widget, gpointer data) {
-    gtk_main_quit();
-}
-
-static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer data) {
-    destroy(widget, data);
-
-    return FALSE;
-}
-
-gboolean image_press_callback(GtkWidget *event_box, GdkEventButton *event, gpointer data);
-
-typedef struct image_data_t {
-    GtkWidget *image;
-    int x, y;
-} image_data_t;
-
-int p = 1;
 
 int main(int argc, char **argv) {
     GtkWidget *window, *toolbar, *dialog, *menu_bar, *button;
@@ -48,6 +32,15 @@ int main(int argc, char **argv) {
     // final tablero principal
 
     GtkWidget *token, *white;
+
+    // informacion general
+    game_info_t game_data;
+    game_data.turn = 1;
+    game_data.player1_p = 0;
+    game_data.player2_p = 0;
+    game_data.ccount_1 = 0;
+    game_data.ccount_2 = 0;
+
 
     gtk_init(&argc, &argv);
 
@@ -123,6 +116,7 @@ int main(int argc, char **argv) {
             img_data->x = x;
             img_data->y = y;
             img_data->image = token;
+            img_data->game_info = &game_data;
 
             event_box = gtk_event_box_new();
             gtk_container_add(GTK_CONTAINER(event_box), token);
@@ -166,23 +160,6 @@ int main(int argc, char **argv) {
     gtk_main();
 
     return 0;
-}
-
-gboolean image_press_callback(GtkWidget *event_box, GdkEventButton *event, gpointer data) {
-    image_data_t *img_data = (image_data_t *) data;
-    GdkPixbuf *new_image;
-
-    printf("Click at: %d, %d\n", img_data->x, img_data->y);
-
-    if (p == 1) {
-        new_image = gdk_pixbuf_new_from_file("imagenes/blue_token.jpg", NULL);
-        p = 2;
-    }
-    else {
-        new_image = gdk_pixbuf_new_from_file("imagenes/red_token.jpg", NULL);
-        p = 1;
-    }
-    gtk_image_set_from_pixbuf(GTK_IMAGE(img_data->image), new_image);
 }
 
 GtkWidget *create_label(char *str) {
