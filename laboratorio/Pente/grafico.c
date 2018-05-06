@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
     pente_container = gtk_vbox_new(TRUE, 0);
 
     players = gtk_vbox_new(TRUE, 0);
-    turn = gtk_vbox_new(TRUE, 0);
+    turn = gtk_hbox_new(TRUE, 0);
     comidas = gtk_vbox_new(TRUE, 0);
 
 
@@ -151,7 +151,9 @@ int main(int argc, char **argv) {
     gtk_container_add(GTK_CONTAINER(frame), turn);
     gtk_container_add(GTK_CONTAINER(turn), create_label("Jugador 1"));
 
-    // gtk_container_add(GTK_CONTAINER(turn), create_label("Turno"));
+    // imagen del jugador
+    gtk_container_add(GTK_CONTAINER(turn), gtk_image_new_from_file("imagenes/white_token.jpg"));
+
     frame = gtk_frame_new("Comidas");
     gtk_container_add(GTK_CONTAINER(sidebar_menu), frame);
     gtk_container_add(GTK_CONTAINER(frame), comidas);
@@ -187,8 +189,8 @@ GtkWidget *create_label(char *str) {
     GtkWidget *label;
 
     label = gtk_label_new(str);
-    gtk_misc_set_alignment(GTK_MISC(label), 0, 0);
-    gtk_misc_set_padding(GTK_MISC(label), 50, 5);
+    //gtk_misc_set_alignment(GTK_MISC(label), 0, 0);
+    //gtk_misc_set_padding(GTK_MISC(label), 50, 5);
 
     return label;
 }
