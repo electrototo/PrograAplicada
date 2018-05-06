@@ -8,11 +8,12 @@
 
 #include "callbacks.h" 
 #include "pente_types.h" 
+#include "menus.h" 
 
 GtkWidget *create_label(char *str);
 
 int main(int argc, char **argv) {
-    GtkWidget *window, *toolbar, *dialog, *menu_bar, *button;
+    GtkWidget *window, *toolbar, *dialog, *button;
     GtkToolItem *tool_item;
 
     GtkWidget *hbox, *vbox;
@@ -20,12 +21,6 @@ int main(int argc, char **argv) {
     // para las imagenes
     GtkWidget *event_box;
     image_data_t *img_data;
-
-    // menubar
-    GtkWidget *file_item, *edit_item, *help_item;
-    GtkWidget *file_menu, *edit_menu, *help_menu;
-    GtkWidget *open_item, *new_game_item, *save_item, *save_as_item, *quit_item;
-    // end menubar
 
     // tablero principal
     GtkWidget *main_container, *sidebar_menu, *pente_container;
@@ -51,47 +46,8 @@ int main(int argc, char **argv) {
 
     vbox = gtk_vbox_new(FALSE, 0);
     hbox = gtk_hbox_new(TRUE, 0);
-    // menubar
-    menu_bar = gtk_menu_bar_new();
 
-    file_item = gtk_menu_item_new_with_label("File");
-    edit_item = gtk_menu_item_new_with_label("Edit");
-    help_item = gtk_menu_item_new_with_label("Help");
-
-    gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar), file_item);
-    gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar), edit_item);
-    gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar), help_item);
-
-    gtk_container_add(GTK_CONTAINER(vbox), menu_bar);
-    //end menubar
-
-    // file menu
-    file_menu = gtk_menu_new();
-    gtk_menu_item_set_submenu(GTK_MENU_ITEM(file_item), file_menu);
-
-    open_item = gtk_menu_item_new_with_label("Open file");
-    new_game_item = gtk_menu_item_new_with_label("New game");
-    save_item = gtk_menu_item_new_with_label("Save");
-    save_as_item = gtk_menu_item_new_with_label("Save as...");
-    quit_item = gtk_menu_item_new_with_label("Quit");
-
-    gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), open_item);
-    gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), new_game_item);
-    gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), save_item);
-    gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), save_as_item);
-    gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), quit_item);
-
-    // end file menu 
-
-    // edit menu
-    edit_menu = gtk_menu_new();
-    gtk_menu_item_set_submenu(GTK_MENU_ITEM(edit_item), edit_menu);
-    // end edit menu
-
-    // help menu
-    help_menu = gtk_menu_new();
-    gtk_menu_item_set_submenu(GTK_MENU_ITEM(help_item), help_menu);
-    // end help menu
+    gtk_container_add(GTK_CONTAINER(vbox), create_menubar());
 
     gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, TRUE, 0);
 
@@ -103,35 +59,8 @@ int main(int argc, char **argv) {
     turn = gtk_hbox_new(TRUE, 0);
     comidas = gtk_vbox_new(TRUE, 0);
 
+    gtk_container_add(GTK_CONTAINER(hbox), create_toolbar());
 
-    // Toolbar se puede hacer en un ciclo
-    toolbar = gtk_toolbar_new();
-
-    tool_item = gtk_tool_button_new_from_stock(GTK_STOCK_NEW);
-    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), tool_item, -1);
-
-    tool_item = gtk_tool_button_new_from_stock(GTK_STOCK_OPEN);
-    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), tool_item, -1);
-
-    tool_item = gtk_tool_button_new_from_stock(GTK_STOCK_SAVE);
-    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), tool_item, -1);
-
-    tool_item = gtk_tool_button_new_from_stock(GTK_STOCK_SAVE_AS);
-    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), tool_item, -1);
-
-    tool_item = gtk_tool_button_new_from_stock(GTK_STOCK_UNDO);
-    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), tool_item, -1);
-
-    tool_item = gtk_tool_button_new_from_stock(GTK_STOCK_REDO);
-    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), tool_item, -1);
-
-    tool_item = gtk_tool_button_new_from_stock(GTK_STOCK_INFO);
-    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), tool_item, -1);
-
-    gtk_container_add(GTK_CONTAINER(hbox), toolbar);
-    gtk_widget_show(toolbar);
-    // end toolbar
-    
     // start pente board
     for (int y = 0; y < 20; y++) {
         hbox = gtk_hbox_new(TRUE, 0);
