@@ -1,5 +1,5 @@
 /*
- *  autor: cirstobal liendo <cristobal@liendo.net> 
+ *  autor: cirstobal liendo <cristobal@liendo.net>
  *  fecha: Sun 06 May 2018 10:18:36 AM CDT
  *  descripcion: archivo que contiene los menus
 */
@@ -52,9 +52,30 @@ GtkWidget *create_menubar() {
     return menu_bar;
 }
 
+GtkWidget *create_toolbar() {
+    GtkWidget *toolbar;
+
+    tool_item_dt toolbar_options[7] = {
+        {"gtk-new", gen_callback, NULL},
+        {"gtk-open", gen_callback, NULL},
+        {"gtk-save", gen_callback, NULL},
+        {"gtk-save-as", gen_callback, NULL},
+        {"gtk-undo", gen_callback, NULL},
+        {"gtk-redo", gen_callback, NULL},
+        {"gtk-info", gen_callback, NULL},
+    };
+
+    toolbar = gtk_toolbar_new();
+
+    for (int i = 0; i < 7; i++)
+        create_toolbar_item(toolbar, toolbar_options[i]);
+
+    return toolbar;
+}
+
 GtkWidget *create_menu_item(GtkWidget *parent, menu_item_dt info) {
     GtkWidget *item;
-    
+
     if (info.callback != NULL) {
         item = gtk_menu_item_new_with_label(info.label);
         g_signal_connect(item, "activate", G_CALLBACK(info.callback), info.data);
@@ -65,6 +86,17 @@ GtkWidget *create_menu_item(GtkWidget *parent, menu_item_dt info) {
     gtk_menu_shell_append(GTK_MENU_SHELL(parent), item);
 
     return item;
+}
+
+GtkToolItem *create_toolbar_item(GtkWidget *parent, tool_item_dt info) {
+    GtkToolItem *tool_item;
+
+    tool_item = gtk_tool_button_new_from_stock(info.stock_id);
+    g_signal_connect(tool_item, "clicked", G_CALLBACK(info.callback), info.data);
+
+    gtk_toolbar_insert(GTK_TOOLBAR(parent), tool_item, -1);
+
+    return tool_item;
 }
 
 void create_menu_from_array(GtkWidget *parent_item, menu_item_dt *items, int size) {
