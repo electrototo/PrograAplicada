@@ -36,6 +36,42 @@ void destroy(GtkWidget *widget, gpointer data) {
     gtk_main_quit();
 }
 
+void open_file(GtkWidget *wdiget, gpointer data) {
+    printf("Open file");
+} 
+
+void new_game(GtkWidget *wdiget, gpointer data) {
+    printf("New game");
+} 
+
+void save(GtkWidget *wdiget, gpointer data) {
+    printf("Save");
+} 
+
+void save_as(GtkWidget *wdiget, gpointer data) {
+    printf("Save as");
+} 
+
+void quit(GtkWidget *wdiget, gpointer data) {
+    printf("Quit");
+} 
+
+void undo(GtkWidget *wdiget, gpointer data) {
+    printf("Undo");
+} 
+
+void redo(GtkWidget *wdiget, gpointer data) {
+    printf("Redo");
+} 
+
+void tutorial(GtkWidget *wdiget, gpointer data) {
+    printf("Tutorial\n");
+} 
+
+void about_us(GtkWidget *wdiget, gpointer data) {
+    printf("About us\n");
+} 
+
 gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer data) {
     destroy(widget, data);
 
@@ -44,4 +80,12 @@ gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer data) {
 
 void gen_callback(GtkWidget *menuitem, gpointer data) {
     g_print("gen_callback\n");
+}
+
+// windows signals
+
+void new_game_callback(GtkWidget *widget, gpointer data) {
+}
+
+void resume_game_callback(GtkWidget *widget, gpointer data) {
 }
