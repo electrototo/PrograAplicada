@@ -16,23 +16,23 @@ GtkWidget *create_menubar() {
     GtkWidget *file_item, *edit_item, *help_item;
 
     menu_item_dt file_options[7] = {
-        {"Open File", gen_callback, NULL},
-        {"New Game", gen_callback, NULL},
+        {"Open File", open_file, NULL},
+        {"New Game", new_game, NULL},
         {"~~~", NULL, NULL},
-        {"Save", gen_callback, NULL},
-        {"Save as...", gen_callback, NULL},
+        {"Save", save, NULL},
+        {"Save as...", save_as, NULL},
         {"~~~", NULL, NULL},
-        {"Quit", gen_callback, NULL}
+        {"Quit", quit, NULL}
     };
 
     menu_item_dt edit_options[2] = {
-        {"Undo", gen_callback, NULL},
-        {"Redo", gen_callback, NULL}
+        {"Undo", undo, NULL},
+        {"Redo", redo, NULL}
     };
 
     menu_item_dt help_options[2] = {
-        {"Pente Tutorial", gen_callback, NULL},
-        {"About Us", gen_callback, NULL},
+        {"Pente Tutorial", tutorial, NULL},
+        {"About Us", about_us, NULL},
     };
 
     menu_bar = gtk_menu_bar_new();
@@ -56,13 +56,13 @@ GtkWidget *create_toolbar() {
     GtkWidget *toolbar;
 
     tool_item_dt toolbar_options[7] = {
-        {"gtk-new", gen_callback, NULL},
-        {"gtk-open", gen_callback, NULL},
-        {"gtk-save", gen_callback, NULL},
-        {"gtk-save-as", gen_callback, NULL},
-        {"gtk-undo", gen_callback, NULL},
-        {"gtk-redo", gen_callback, NULL},
-        {"gtk-info", gen_callback, NULL},
+        {"gtk-new", new_game, NULL},
+        {"gtk-open", open_file, NULL},
+        {"gtk-save", save, NULL},
+        {"gtk-save-as", save_as, NULL},
+        {"gtk-undo", undo, NULL},
+        {"gtk-redo", redo, NULL},
+        {"gtk-info", tutorial, NULL},
     };
 
     toolbar = gtk_toolbar_new();
