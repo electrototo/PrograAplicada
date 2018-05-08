@@ -6,17 +6,20 @@
 
 #include <gtk/gtk.h>
 
+#include "menus.h" 
+#include "windows.h" 
+
 #include "callbacks.h" 
 #include "pente_types.h" 
-#include "menus.h" 
 
 GtkWidget *create_label(char *str);
 
 int main(int argc, char **argv) {
-    GtkWidget *window, *toolbar, *dialog, *button;
+    GtkWidget *window, *welcome_screen, *toolbar, *dialog, *button;
     GtkToolItem *tool_item;
 
     GtkWidget *hbox, *vbox;
+    GtkWidget *welcome_vbox, *welcome_button;
 
     // para las imagenes
     GtkWidget *event_box;
@@ -38,11 +41,15 @@ int main(int argc, char **argv) {
     game_data.ccount_1 = 0;
     game_data.ccount_2 = 0;
 
-
     gtk_init(&argc, &argv);
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     g_signal_connect(window, "delete-event", G_CALLBACK(delete_event), NULL);
+
+    // welcome vbox
+    welcome_screen = create_splash_screen();
+    gtk_widget_show_all(welcome_screen);
+    // end welcome vbox
 
     vbox = gtk_vbox_new(FALSE, 0);
     hbox = gtk_hbox_new(TRUE, 0);
@@ -114,7 +121,7 @@ int main(int argc, char **argv) {
     gtk_container_add(GTK_CONTAINER(comidas), create_label("Jugador 2: "));
 
     gtk_container_add(GTK_CONTAINER(window), vbox);
-    gtk_widget_show_all(window);
+    // gtk_widget_show_all(window);
 
     gtk_main();
 
