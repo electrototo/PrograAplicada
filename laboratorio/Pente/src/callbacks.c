@@ -85,6 +85,13 @@ void gen_callback(GtkWidget *menuitem, gpointer data) {
 // windows signals
 
 void new_game_callback(GtkWidget *widget, gpointer data) {
+    game_info_t *info = (game_info_t *) data;
+
+    GtkWidget *splash_window = gtk_widget_get_parent(widget);
+    splash_window = gtk_widget_get_parent(splash_window);
+
+    gtk_widget_hide(splash_window);
+    gtk_widget_show_all(info->main_board);
 }
 
 void resume_game_callback(GtkWidget *widget, gpointer data) {

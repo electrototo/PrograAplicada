@@ -18,6 +18,8 @@ typedef struct game_info_t {
     int turn;
     int player1_p, player2_p;
     int ccount_1, ccount_2;
+
+    GtkWidget *main_board;
 } game_info_t;
 
 typedef struct menu_item_dt {

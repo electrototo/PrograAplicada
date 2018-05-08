@@ -13,6 +13,7 @@
 #include "pente_types.h" 
 
 GtkWidget *create_label(char *str);
+game_info_t *game_init();
 
 int main(int argc, char **argv) {
     GtkWidget *window, *welcome_screen, *toolbar, *dialog, *button;
@@ -34,20 +35,17 @@ int main(int argc, char **argv) {
     GtkWidget *token, *white;
 
     // informacion general
-    game_info_t game_data;
-    game_data.turn = 1;
-    game_data.player1_p = 0;
-    game_data.player2_p = 0;
-    game_data.ccount_1 = 0;
-    game_data.ccount_2 = 0;
+    game_info_t *game_data = game_init();
 
     gtk_init(&argc, &argv);
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     g_signal_connect(window, "delete-event", G_CALLBACK(delete_event), NULL);
 
+    game_data->main_board = window;
+
     // welcome vbox
-    welcome_screen = create_splash_screen();
+    welcome_screen = create_splash_screen(game_data);
     gtk_widget_show_all(welcome_screen);
     // end welcome vbox
 
@@ -82,7 +80,7 @@ int main(int argc, char **argv) {
             img_data->x = x;
             img_data->y = y;
             img_data->image = token;
-            img_data->game_info = &game_data;
+            img_data->game_info = game_data;
 
             event_box = gtk_event_box_new();
             gtk_container_add(GTK_CONTAINER(event_box), token);
@@ -136,4 +134,16 @@ GtkWidget *create_label(char *str) {
     //gtk_misc_set_padding(GTK_MISC(label), 50, 5);
 
     return label;
+}
+
+game_info_t *game_init() {
+    game_info_t *info = g_malloc(sizeof(game_info_t));
+
+    info->turn = 1;
+    info->player1_p = 0;
+    info->player2_p = 0;
+    info->ccount_1 = 0;
+    info->ccount_2 = 0;
+
+    return info;
 }

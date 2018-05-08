@@ -7,8 +7,9 @@
 #include <gtk/gtk.h>
 
 #include "callbacks.h"
+#include "windows.h"
 
-GtkWidget *create_splash_screen() {
+GtkWidget *create_splash_screen(gpointer game_info) {
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     GtkWidget *vbox = gtk_vbox_new(TRUE, 0);
 
@@ -21,8 +22,8 @@ GtkWidget *create_splash_screen() {
     new_game_button = gtk_button_new_with_label("NEW GAME");
     resume_button = gtk_button_new_with_label("RESUME PLAYING");
 
-    g_signal_connect(new_game_button, "clicked", G_CALLBACK(new_game_callback) ,NULL);
-    g_signal_connect(resume_button, "clicked", G_CALLBACK(resume_game_callback), NULL);
+    g_signal_connect(new_game_button, "clicked", G_CALLBACK(new_game_callback), game_info);
+    g_signal_connect(resume_button, "clicked", G_CALLBACK(resume_game_callback), game_info);
 
     gtk_widget_set_usize(new_game_button, 400, 70);
 
