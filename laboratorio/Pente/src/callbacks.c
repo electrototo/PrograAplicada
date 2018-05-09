@@ -8,6 +8,7 @@
 
 #include "callbacks.h" 
 #include "pente_types.h" 
+#include "windows.h" 
 
 gboolean image_press_callback(GtkWidget *event_box, GdkEventButton *event, gpointer data) {
     image_data_t *img_data = (image_data_t *) data;
@@ -36,8 +37,7 @@ void destroy(GtkWidget *widget, gpointer data) {
     gtk_main_quit();
 }
 
-void open_file(GtkWidget *wdiget, gpointer data) {
-    printf("Open file");
+void open_file(GtkWidget *widget, gpointer data) {
 } 
 
 void new_game(GtkWidget *wdiget, gpointer data) {
@@ -95,4 +95,6 @@ void new_game_callback(GtkWidget *widget, gpointer data) {
 }
 
 void resume_game_callback(GtkWidget *widget, gpointer data) {
+    get_file();
 }
+

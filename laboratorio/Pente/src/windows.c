@@ -36,3 +36,23 @@ GtkWidget *create_splash_screen(gpointer game_info) {
 
     return window;
 }
+
+// get file direction
+FILE *get_file() {
+    GtkWidget *chooser;
+
+    chooser = gtk_file_chooser_dialog_new(
+        "Select file",
+        NULL,
+        GTK_FILE_CHOOSER_ACTION_OPEN,
+        GTK_STOCK_OK,
+        GTK_RESPONSE_OK,
+        GTK_STOCK_CANCEL,
+        GTK_RESPONSE_CANCEL,
+        NULL
+    );
+
+    g_signal_connect(GTK_DIALOG(chooser), "response", G_CALLBACK(), NULL);
+
+    gtk_widget_show_all(chooser);
+}
