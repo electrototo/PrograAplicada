@@ -111,12 +111,13 @@ void resume_game_callback(GtkWidget *widget, gpointer data) {
 void chooser_callback(GtkWidget *widget, gint response_id, gpointer data) {
     char *uri;
 
+    g_print("callback\n");
     switch (response_id) {
         case RESPONSE_OPEN:
             uri = gtk_file_chooser_get_uri(GTK_FILE_CHOOSER(widget));
 
             // aqui carga en memoria el archivo
-            g_print("uri: %s\n", uri + 7);
+            g_print("uri: %s\n", uri);
 
             g_free(uri);
 
