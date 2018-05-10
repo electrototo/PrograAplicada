@@ -7,6 +7,9 @@
 #ifndef PTYPESH
 #define PTYPESH
 
+#define RESPONSE_OPEN 1
+#define RESPONSE_CANCEL 2
+
 typedef struct image_data_t{
     GtkWidget *image;
     int x, y;
@@ -20,6 +23,8 @@ typedef struct game_info_t {
     int ccount_1, ccount_2;
 
     GtkWidget *main_board;
+    GtkWidget *turn_image, *turn_label;
+    GtkWidget *points1_label, *points2_label;
 } game_info_t;
 
 typedef struct menu_item_dt {

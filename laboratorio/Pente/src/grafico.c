@@ -105,12 +105,15 @@ int main(int argc, char **argv) {
     gtk_container_add(GTK_CONTAINER(players), create_label("Jugador 2"));
 
     frame = gtk_frame_new("Turno");
+    game_data->turn_label = create_label("Jugador 1");
+
     gtk_container_add(GTK_CONTAINER(sidebar_menu), frame);
     gtk_container_add(GTK_CONTAINER(frame), turn);
-    gtk_container_add(GTK_CONTAINER(turn), create_label("Jugador 1"));
+    gtk_container_add(GTK_CONTAINER(turn), game_data->turn_label);
 
     // imagen del jugador
-    gtk_container_add(GTK_CONTAINER(turn), gtk_image_new_from_file("imagenes/white_token.jpg"));
+    game_data->turn_image = gtk_image_new_from_file("imagenes/blue_token.jpg");
+    gtk_container_add(GTK_CONTAINER(turn), game_data->turn_image);
 
     frame = gtk_frame_new("Comidas");
     gtk_container_add(GTK_CONTAINER(sidebar_menu), frame);

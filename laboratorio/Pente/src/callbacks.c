@@ -14,7 +14,7 @@ gboolean image_press_callback(GtkWidget *event_box, GdkEventButton *event, gpoin
     image_data_t *img_data = (image_data_t *) data;
     game_info_t *game_data = (game_info_t *) img_data->game_info;
 
-    GdkPixbuf *new_image;
+    GdkPixbuf *new_image, *turn_image;
 
     printf("Click at: %d, %d\n", img_data->x, img_data->y);
 
@@ -23,13 +23,22 @@ gboolean image_press_callback(GtkWidget *event_box, GdkEventButton *event, gpoin
 
     if (game_data->turn == 1) {
         new_image = gdk_pixbuf_new_from_file("imagenes/blue_token.jpg", NULL);
+        turn_image = gdk_pixbuf_new_from_file("imagenes/red_token.jpg", NULL);
+
         game_data->turn = 2;
+
+        gtk_label_set_text(GTK_LABEL(game_data->turn_label), "Jugador 2");
     }
     else {
         new_image = gdk_pixbuf_new_from_file("imagenes/red_token.jpg", NULL);
+        turn_image = gdk_pixbuf_new_from_file("imagenes/blue_token.jpg", NULL);
+
         game_data->turn = 1;
+
+        gtk_label_set_text(GTK_LABEL(game_data->turn_label), "Jugador 1");
     }
 
+    gtk_image_set_from_pixbuf(GTK_IMAGE(game_data->turn_image), turn_image);
     gtk_image_set_from_pixbuf(GTK_IMAGE(img_data->image), new_image);
 }
 
@@ -38,6 +47,7 @@ void destroy(GtkWidget *widget, gpointer data) {
 }
 
 void open_file(GtkWidget *widget, gpointer data) {
+    resume_game(data);
 } 
 
 void new_game(GtkWidget *wdiget, gpointer data) {
@@ -95,6 +105,29 @@ void new_game_callback(GtkWidget *widget, gpointer data) {
 }
 
 void resume_game_callback(GtkWidget *widget, gpointer data) {
-    get_file();
+    resume_game(data);
 }
 
+void chooser_callback(GtkWidget *widget, gint response_id, gpointer data) {
+    char *uri;
+
+    switch (response_id) {
+        case RESPONSE_OPEN:
+            uri = gtk_file_chooser_get_uri(GTK_FILE_CHOOSER(widget));
+
+            // aqui carga en memoria el archivo
+            g_print("uri: %s\n", uri + 7);
+
+            g_free(uri);
+
+            break;
+
+        case RESPONSE_CANCEL:
+            gtk_widget_destroy(widget);
+            g_print("Cancel_data\n");
+            break;
+
+        default:
+            break;
+    }
+}

@@ -9,6 +9,8 @@
 #include "callbacks.h"
 #include "windows.h"
 
+#include "pente_types.h"
+
 GtkWidget *create_splash_screen(gpointer game_info) {
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     GtkWidget *vbox = gtk_vbox_new(TRUE, 0);
@@ -27,7 +29,7 @@ GtkWidget *create_splash_screen(gpointer game_info) {
 
     gtk_widget_set_usize(new_game_button, 400, 70);
 
-    g_signal_connect(GTK_WINDOW(window), "delete-event", G_CALLBACK(delete_event), NULL);
+    g_signal_connect(GTK_WINDOW(window), "delete-event", G_CALLBACK(delete_event), game_info);
 
     gtk_box_pack_start(GTK_BOX(vbox), new_game_button, TRUE, TRUE, 10);
     gtk_box_pack_start(GTK_BOX(vbox), resume_button, TRUE, TRUE, 10);
@@ -38,21 +40,30 @@ GtkWidget *create_splash_screen(gpointer game_info) {
 }
 
 // get file direction
-FILE *get_file() {
+void resume_game(gpointer data) {
     GtkWidget *chooser;
+    GtkFileFilter *filter;
 
     chooser = gtk_file_chooser_dialog_new(
         "Select file",
         NULL,
         GTK_FILE_CHOOSER_ACTION_OPEN,
-        GTK_STOCK_OK,
-        GTK_RESPONSE_OK,
-        GTK_STOCK_CANCEL,
-        GTK_RESPONSE_CANCEL,
+        "Open",
+        RESPONSE_OPEN,
+        "Cancel",
+        RESPONSE_CANCEL,
         NULL
     );
 
-    g_signal_connect(GTK_DIALOG(chooser), "response", G_CALLBACK(), NULL);
+    filter = gtk_file_filter_new();
+
+    gtk_file_filter_set_name(filter, "Pente files (.ice)");
+    gtk_file_filter_add_pattern(filter, "*.ice");
+
+    gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(chooser), FALSE);
+
+    gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(chooser), filter);
+    g_signal_connect(GTK_DIALOG(chooser), "response", G_CALLBACK(chooser_callback), data);
 
     gtk_widget_show_all(chooser);
 }

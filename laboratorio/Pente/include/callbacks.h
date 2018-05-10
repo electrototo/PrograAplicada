@@ -28,4 +28,6 @@ void about_us(GtkWidget *wdiget, gpointer data);
 void new_game_callback(GtkWidget *widget, gpointer data);
 void resume_game_callback(GtkWidget *widget, gpointer data);
 
+void chooser_callback(GtkWidget *widget, gint response_id, gpointer data);
+
 #endif
