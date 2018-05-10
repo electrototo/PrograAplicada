@@ -67,3 +67,31 @@ void resume_game(gpointer data) {
 
     gtk_widget_show_all(chooser);
 }
+
+void save_as_screen(gpointer data) {
+    GtkWidget *chooser;
+    GtkFileFilter *filter;
+
+    chooser = gtk_file_chooser_dialog_new(
+        "Select file",
+        NULL,
+        GTK_FILE_CHOOSER_ACTION_SAVE,
+        "Save",
+        RESPONSE_OPEN,
+        "Cancel",
+        RESPONSE_CANCEL,
+        NULL
+    );
+
+    filter = gtk_file_filter_new();
+
+    gtk_file_filter_set_name(filter, "Pente files (.ice)");
+    gtk_file_filter_add_pattern(filter, "*.ice");
+
+    gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(chooser), FALSE);
+
+    gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(chooser), filter);
+    g_signal_connect(GTK_DIALOG(chooser), "response", G_CALLBACK(chooser_callback), data);
+
+    gtk_widget_show_all(chooser);
+}

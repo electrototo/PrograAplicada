@@ -59,7 +59,7 @@ void save(GtkWidget *wdiget, gpointer data) {
 } 
 
 void save_as(GtkWidget *wdiget, gpointer data) {
-    printf("Save as");
+    save_as_screen(data);
 } 
 
 void quit(GtkWidget *wdiget, gpointer data) {
